@@ -1,0 +1,48 @@
+name: Deej
+options:
+  bundleIdPrefix: com.shray
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "18.0"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ENABLE_MODULE_VERIFIER: YES
+
+targets:
+  Deej:
+    type: application
+    platform: iOS
+    sources:
+      - path: Deej
+        excludes:
+          - "**/.DS_Store"
+    info:
+      path: Deej/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: BgCanvas
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        ITSAppUsesNonExemptEncryption: false
+        NSLocationWhenInUseUsageDescription: "Deej uses your location to surface live music events near you."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shray.deej
+        PRODUCT_NAME: Deej
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: "0.1.0"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""

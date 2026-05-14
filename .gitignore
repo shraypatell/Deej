@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Xcode user-specific
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+
+# Xcode build outputs
+build/
+DerivedData/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# CocoaPods (not using, but just in case)
+Pods/
+
+# Carthage (not using, but just in case)
+Carthage/Build/
+
+# fastlane (not using, but just in case)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Generated files we want to keep regeneratable, not source-controlled
+# (project.yml IS source-controlled; Deej.xcodeproj is regenerated from it)
+
+# Misc
+*.log
+*.tmp
+.env
+.env.local
