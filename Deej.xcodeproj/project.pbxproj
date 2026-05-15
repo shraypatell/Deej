@@ -18,6 +18,7 @@
 		2C6FC5DC2CCA6DA1A79A4ED3 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = F614A490CDCD31C4714C5E6F /* Typography.swift */; };
 		2F06F183A790DB65E3B96E54 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83009098549153E32A74218 /* Secrets.swift */; };
 		40F4A1ADEDAFE0E151B4DC81 /* Secrets.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0E9FF3F365209F8991CE7EA4 /* Secrets.swift.example */; };
+		570B53F6491A561A486B4E0A /* VenueCoordinates.swift in Sources */ = {isa = PBXBuildFile; fileRef = B606968BD0514C4BC3EDBAB7 /* VenueCoordinates.swift */; };
 		5DF5AFBAC89661CCFB20C138 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BF8149C1D14D464A8A733 /* Colors.swift */; };
 		6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55DA2AC77B581279928C2DB /* RotaryKnob.swift */; };
 		6BA8725E3A78AC17DB9AEAB3 /* Friendship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52701A152C8C3D4DEBF56B43 /* Friendship.swift */; };
@@ -72,6 +73,7 @@
 		A3E6D940E95975B6D2B264D2 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AA0FAA9F58DB6DA85C4F3FA2 /* HardwareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareButton.swift; sourceTree = "<group>"; };
 		B3C274105B5A122F26D009EA /* HighlightStripeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightStripeCard.swift; sourceTree = "<group>"; };
+		B606968BD0514C4BC3EDBAB7 /* VenueCoordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueCoordinates.swift; sourceTree = "<group>"; };
 		C297B3DF3A2C4DF2F0920859 /* DeejApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeejApp.swift; sourceTree = "<group>"; };
 		D4B486327CD1AC981C4F716C /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareTabBar.swift; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				E17252FA2B05D85BD3AD72A2 /* DiscoverView.swift */,
+				B606968BD0514C4BC3EDBAB7 /* VenueCoordinates.swift */,
 			);
 			path = Discover;
 			sourceTree = "<group>";
@@ -386,6 +389,7 @@
 				88BEE9D6863C29153DA3BA8B /* SupabaseClient.swift in Sources */,
 				D7B04E7CEE63AB3145733C78 /* TasteVector.swift in Sources */,
 				2C6FC5DC2CCA6DA1A79A4ED3 /* Typography.swift in Sources */,
+				570B53F6491A561A486B4E0A /* VenueCoordinates.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
