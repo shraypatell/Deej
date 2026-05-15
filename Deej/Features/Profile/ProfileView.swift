@@ -13,11 +13,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AppServices.self) private var services
 
-    // Hard-coded user identity for v0; real Sign in with Apple lands in Phase 5.
-    private let username  = "@you"
-    private let bio       = "warehouse + club nights, mostly techno"
-    private let location  = "● BKLYN, NY · LOGGING SINCE '22"
-    private let initials  = "SP"
+    @State private var showSettings: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -40,10 +36,38 @@ struct ProfileView: View {
                 FriendsView()
                     .toolbar(.hidden, for: .navigationBar)
             }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground(Color.deejBgCanvas)
+            }
         }
     }
 
     private struct FriendsDestination: Hashable {}
+
+    // MARK: derived user fields
+    private var resolvedUsername: String {
+        if let u = services.currentUser?.username, !u.isEmpty { return "@\(u)" }
+        return "@you"
+    }
+    private var resolvedBio: String {
+        services.currentUser?.bio ?? "tap the gear to set your bio"
+    }
+    private var resolvedLocation: String {
+        if let loc = services.currentUser?.location, !loc.isEmpty {
+            return "● \(loc)"
+        }
+        return "● tap settings to set your city"
+    }
+    private var resolvedInitials: String {
+        let raw = services.currentUser?.displayName ?? services.currentUser?.username ?? "you"
+        let words = raw.split(separator: " ")
+        if words.count >= 2 {
+            return "\(words[0].prefix(1))\(words[1].prefix(1))".uppercased()
+        }
+        return String(raw.prefix(2)).uppercased()
+    }
 
     // MARK: nav
     private var navHeader: some View {
@@ -53,23 +77,26 @@ struct ProfileView: View {
                 .foregroundStyle(.deejTextFaint)
                 .deejTracking(2)
             Spacer()
-            roundIcon("square.and.arrow.up")
-            roundIcon("gearshape")
+            roundIcon("square.and.arrow.up") {}
+            roundIcon("gearshape") { showSettings = true }
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
     }
 
-    private func roundIcon(_ name: String) -> some View {
-        Image(systemName: name)
-            .font(.system(size: 13))
-            .foregroundStyle(.deejCreamDim)
-            .frame(width: 36, height: 36)
-            .background {
-                Circle()
-                    .fill(Color.deejButtonDark)
-                    .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
-            }
+    private func roundIcon(_ name: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: name)
+                .font(.system(size: 13))
+                .foregroundStyle(.deejCreamDim)
+                .frame(width: 36, height: 36)
+                .background {
+                    Circle()
+                        .fill(Color.deejButtonDark)
+                        .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+                }
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: hero
@@ -80,7 +107,7 @@ struct ProfileView: View {
                     .fill(Color.deejButtonDark)
                     .overlay { Circle().strokeBorder(Color.deejOrangePrimary, lineWidth: 2) }
                     .shadow(color: Color.deejOrangePrimary.opacity(0.4), radius: 16)
-                Text(initials)
+                Text(resolvedInitials)
                     .font(.deejMono(26, weight: .bold))
                     .foregroundStyle(.deejOrangeHigh)
                     .deejTracking(1)
@@ -88,14 +115,14 @@ struct ProfileView: View {
             .frame(width: 72, height: 72)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(username)
+                Text(resolvedUsername)
                     .font(.deejMono(22, weight: .bold))
                     .foregroundStyle(.deejCream)
                     .deejTracking(0.5)
-                Text(bio)
+                Text(resolvedBio)
                     .font(.deejMono(10, weight: .medium))
                     .foregroundStyle(.deejOrangeLow)
-                Text(location)
+                Text(resolvedLocation)
                     .font(.deejMono(9, weight: .semibold))
                     .foregroundStyle(.deejCreamDim)
                     .deejTracking(1.2)

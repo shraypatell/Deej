@@ -339,6 +339,55 @@ final class AppServices {
         }
     }
 
+    // MARK: profile updates
+    func updateProfile(username: String?, displayName: String?, bio: String?, location: String?) async -> Bool {
+        guard var user = currentUser else { return false }
+        struct Patch: Encodable {
+            var username: String?
+            var display_name: String?
+            var bio: String?
+            var location: String?
+        }
+        let patch = Patch(
+            username: username?.lowercased(),
+            display_name: displayName,
+            bio: bio,
+            location: location
+        )
+        do {
+            try await client.from("users")
+                .update(patch)
+                .eq("id", value: user.id)
+                .execute()
+            if let u = username { user.username = u.lowercased() }
+            user.displayName = displayName
+            user.bio = bio
+            user.location = location
+            currentUser = user
+            return true
+        } catch {
+            recordError(error, op: "update_profile")
+            return false
+        }
+    }
+
+    func signOut() async {
+        do {
+            try await client.auth.signOut()
+            currentUser = nil
+            events = []
+            logs = []
+            friendships = []
+            friendUsers = [:]
+            feedActivities = []
+            activityActorUsers = [:]
+            activityEvents = [:]
+            await bootstrap()
+        } catch {
+            recordError(error, op: "sign_out")
+        }
+    }
+
     func markOnboardingComplete() async {
         guard var user = currentUser else { return }
         user.onboardingCompleted = true
