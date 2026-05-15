@@ -22,6 +22,8 @@ final class AppServices {
     private(set) var currentUser: AppUser?
     private(set) var events: [Event] = []
     private(set) var logs: [EventLog] = []
+    private(set) var friendships: [Friendship] = []
+    private(set) var friendUsers: [UUID: AppUser] = [:]   // friend id → profile
     private(set) var isBootstrapping: Bool = false
     private(set) var lastError: String?
 
@@ -42,6 +44,25 @@ final class AppServices {
         events.first { $0.id == id }
     }
 
+    var acceptedFriendships: [Friendship] {
+        friendships.filter { $0.status == .accepted }
+    }
+
+    var pendingIncomingFriendships: [Friendship] {
+        guard let me = currentUser?.id else { return [] }
+        return friendships.filter { $0.status == .pending && $0.recipientId == me }
+    }
+
+    var pendingOutgoingFriendships: [Friendship] {
+        guard let me = currentUser?.id else { return [] }
+        return friendships.filter { $0.status == .pending && $0.requesterId == me }
+    }
+
+    func friend(_ friendship: Friendship) -> AppUser? {
+        guard let me = currentUser?.id else { return nil }
+        return friendUsers[friendship.otherUserId(notMe: me)]
+    }
+
     /// Stable user id for views that previously used `LocalEventStore.mockUserId`.
     var userId: UUID {
         currentUser?.id ?? UUID()
@@ -60,6 +81,7 @@ final class AppServices {
             try await fetchEvents()
             try await seedDemoEventsIfEmpty()
             try await fetchLogs()
+            try await fetchFriendships()
         } catch {
             recordError(error, op: "bootstrap")
         }
@@ -75,6 +97,97 @@ final class AppServices {
         } catch {
             recordError(error, op: "save_log")
         }
+    }
+
+    // MARK: friend operations
+    func refreshFriends() async {
+        do { try await fetchFriendships() }
+        catch { recordError(error, op: "refresh_friends") }
+    }
+
+    func searchUsers(matching query: String) async -> [AppUser] {
+        guard query.count >= 2 else { return [] }
+        let q = query.lowercased()
+        do {
+            let result: [AppUser] = try await client.from("users")
+                .select()
+                .ilike("username", pattern: "%\(q)%")
+                .neq("id", value: currentUser?.id.uuidString ?? "")
+                .limit(20)
+                .execute()
+                .value
+            return result
+        } catch {
+            recordError(error, op: "search_users")
+            return []
+        }
+    }
+
+    func sendFriendRequest(to userId: UUID) async {
+        guard let me = currentUser?.id else { return }
+        struct Payload: Encodable {
+            let requester_id: String
+            let recipient_id: String
+            let status: String
+        }
+        do {
+            try await client.from("friendships")
+                .insert(Payload(
+                    requester_id: me.uuidString,
+                    recipient_id: userId.uuidString,
+                    status: "pending"))
+                .execute()
+            try await fetchFriendships()
+        } catch {
+            recordError(error, op: "send_friend_request")
+        }
+    }
+
+    func acceptFriendRequest(_ friendship: Friendship) async {
+        do {
+            try await client.from("friendships")
+                .update(["status": "accepted"])
+                .eq("id", value: friendship.id)
+                .execute()
+            try await fetchFriendships()
+        } catch {
+            recordError(error, op: "accept_friend")
+        }
+    }
+
+    func declineFriendRequest(_ friendship: Friendship) async {
+        do {
+            try await client.from("friendships")
+                .delete()
+                .eq("id", value: friendship.id)
+                .execute()
+            try await fetchFriendships()
+        } catch {
+            recordError(error, op: "decline_friend")
+        }
+    }
+
+    private func fetchFriendships() async throws {
+        guard let me = currentUser?.id else { return }
+        let result: [Friendship] = try await client.from("friendships")
+            .select()
+            .or("requester_id.eq.\(me.uuidString),recipient_id.eq.\(me.uuidString)")
+            .execute()
+            .value
+        log.info("fetchFriendships: count=\(result.count)")
+        friendships = result
+
+        // Load the user rows for every counterpart so we can render names/avatars.
+        let otherIds = result
+            .map { $0.otherUserId(notMe: me) }
+            .filter { !friendUsers.keys.contains($0) }
+        guard !otherIds.isEmpty else { return }
+        let users: [AppUser] = try await client.from("users")
+            .select()
+            .in("id", values: otherIds.map { $0.uuidString })
+            .execute()
+            .value
+        for u in users { friendUsers[u.id] = u }
     }
 
     func markOnboardingComplete() async {

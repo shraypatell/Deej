@@ -10,6 +10,7 @@
 		030CD39FDD1485CD9075A444 /* Dimension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF25F3520D39858B60F6F664 /* Dimension.swift */; };
 		090428B619EE515C452A1071 /* HardwareTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */; };
 		0AA46BB083790B58D932D5A7 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C41CD0AB091B76C85DE388B /* EventDetailView.swift */; };
+		13564A351188889C249F8C1F /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCD0172F5EE8BA71CA3E0B5 /* FriendsView.swift */; };
 		14D4D3107E91260B1E1C5576 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FABE21F27712FCC6040780F5 /* Supabase */; };
 		1E5C845B5D403FB2D8AC4C55 /* AttendedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6D4F457653FDF0A211F4A0 /* AttendedView.swift */; };
 		224735E9D787C521DBF11B7C /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47BD4CA37A1E9C61CD48BDC /* EventLog.swift */; };
@@ -19,6 +20,7 @@
 		40F4A1ADEDAFE0E151B4DC81 /* Secrets.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0E9FF3F365209F8991CE7EA4 /* Secrets.swift.example */; };
 		5DF5AFBAC89661CCFB20C138 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BF8149C1D14D464A8A733 /* Colors.swift */; };
 		6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55DA2AC77B581279928C2DB /* RotaryKnob.swift */; };
+		6BA8725E3A78AC17DB9AEAB3 /* Friendship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52701A152C8C3D4DEBF56B43 /* Friendship.swift */; };
 		7ED06EB2C0F3CC577FD83616 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1274906AF1AF17924BAE2C /* RootView.swift */; };
 		7FB9E8D4054A9FBE003AA7C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1E17F19C9B6035EC929AC0EA /* Assets.xcassets */; };
 		804241631361F73D9F85A186 /* CRTScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8172E1AFEF25034D62EE477B /* CRTScreen.swift */; };
@@ -53,7 +55,9 @@
 		375A4020482C5C8C7A749ACD /* DimensionSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DimensionSlider.swift; sourceTree = "<group>"; };
 		4179DC9E7B128578EE115AE2 /* TasteVector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasteVector.swift; sourceTree = "<group>"; };
 		491BF8149C1D14D464A8A733 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		52701A152C8C3D4DEBF56B43 /* Friendship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Friendship.swift; sourceTree = "<group>"; };
 		5EDB660DE38994E96B32C3B3 /* StatusLED.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLED.swift; sourceTree = "<group>"; };
+		6FCD0172F5EE8BA71CA3E0B5 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		70682E1E90405AB1921F2F6E /* AppUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUser.swift; sourceTree = "<group>"; };
 		72BD8D2FCC30846F81D7BC80 /* OLEDDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OLEDDisplay.swift; sourceTree = "<group>"; };
 		8172E1AFEF25034D62EE477B /* CRTScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRTScreen.swift; sourceTree = "<group>"; };
@@ -108,6 +112,14 @@
 			path = EventRanking;
 			sourceTree = "<group>";
 		};
+		262067F92AD6A48E407C1600 /* Friends */ = {
+			isa = PBXGroup;
+			children = (
+				6FCD0172F5EE8BA71CA3E0B5 /* FriendsView.swift */,
+			);
+			path = Friends;
+			sourceTree = "<group>";
+		};
 		270739EA5854272A421A3958 /* EventDetail */ = {
 			isa = PBXGroup;
 			children = (
@@ -153,6 +165,7 @@
 				DF25F3520D39858B60F6F664 /* Dimension.swift */,
 				05AB4F58851313A91E036623 /* Event.swift */,
 				E47BD4CA37A1E9C61CD48BDC /* EventLog.swift */,
+				52701A152C8C3D4DEBF56B43 /* Friendship.swift */,
 				4179DC9E7B128578EE115AE2 /* TasteVector.swift */,
 			);
 			path = Models;
@@ -244,6 +257,7 @@
 				270739EA5854272A421A3958 /* EventDetail */,
 				24E2FE25BCF5D41C2E0EEEE8 /* EventRanking */,
 				3620503C269DC05216794CD8 /* Feed */,
+				262067F92AD6A48E407C1600 /* Friends */,
 				83E78DFA884138988DA19D67 /* Onboarding */,
 				B0B05EE9F12BC97E86AEC558 /* Profile */,
 			);
@@ -351,6 +365,8 @@
 				224735E9D787C521DBF11B7C /* EventLog.swift in Sources */,
 				C471E1F31EEE18A96D898813 /* EventRankingView.swift in Sources */,
 				8C304BB8FA9B1D8EDA58FEAF /* FeedView.swift in Sources */,
+				13564A351188889C249F8C1F /* FriendsView.swift in Sources */,
+				6BA8725E3A78AC17DB9AEAB3 /* Friendship.swift in Sources */,
 				2B50000051BA4941E015538D /* HardwareButton.swift in Sources */,
 				C04263BF9C1E8784A194B875 /* HardwarePanel.swift in Sources */,
 				090428B619EE515C452A1071 /* HardwareTabBar.swift in Sources */,

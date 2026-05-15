@@ -20,21 +20,30 @@ struct ProfileView: View {
     private let initials  = "SP"
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                navHeader
-                hero
-                statsRow
-                tasteHeader
-                tasteSubtitle
-                tasteBars
-                friendsSection
-                Spacer(minLength: 100)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    navHeader
+                    hero
+                    statsRow
+                    tasteHeader
+                    tasteSubtitle
+                    tasteBars
+                    friendsSection
+                    Spacer(minLength: 100)
+                }
+                .padding(.bottom, 60)
             }
-            .padding(.bottom, 60)
+            .background(Color.deejBgCanvas.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: FriendsDestination.self) { _ in
+                FriendsView()
+                    .toolbar(.hidden, for: .navigationBar)
+            }
         }
-        .background(Color.deejBgCanvas.ignoresSafeArea())
     }
+
+    private struct FriendsDestination: Hashable {}
 
     // MARK: nav
     private var navHeader: some View {
@@ -99,7 +108,7 @@ struct ProfileView: View {
     // MARK: stats
     private var statsRow: some View {
         HStack(spacing: 8) {
-            OLEDStatChip(label: "FRIENDS",   value: "0",
+            OLEDStatChip(label: "FRIENDS",   value: "\(services.acceptedFriendships.count)",
                          valueColor: .deejCream)
             OLEDStatChip(label: "LOGGED",    value: "\(services.orderedLogs.count)",
                          valueColor: .deejOrangeHigh)
@@ -211,36 +220,79 @@ struct ProfileView: View {
 
     // MARK: friends
     private var friendsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("YOUR_FRIENDS")
-                    .font(.deejMono(10, weight: .semibold))
-                    .foregroundStyle(.deejCreamDim)
-                    .deejTracking(1.5)
-                Spacer()
-                Text("VIEW_ALL · 0 ▸")
-                    .font(.deejMono(9, weight: .semibold))
-                    .foregroundStyle(.deejOrangeLow)
-                    .deejTracking(1.2)
-            }
-
-            HStack(spacing: 12) {
-                ForEach(0..<5) { _ in
-                    Circle()
-                        .fill(Color.deejButtonDark)
-                        .frame(width: 44, height: 44)
-                        .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+        NavigationLink(value: FriendsDestination()) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("YOUR_FRIENDS")
+                        .font(.deejMono(10, weight: .semibold))
+                        .foregroundStyle(.deejCreamDim)
+                        .deejTracking(1.5)
+                    Spacer()
+                    Text(viewAllLabel)
+                        .font(.deejMono(9, weight: .semibold))
+                        .foregroundStyle(.deejOrangeHigh)
+                        .deejTracking(1.2)
                 }
-                Spacer()
-            }
 
-            Text("add friends in phase 5 to see mutual events")
-                .font(.deejMono(9))
-                .foregroundStyle(.deejEngraving)
-                .padding(.top, 4)
+                friendAvatarsRow
+
+                if pendingIncomingCount > 0 {
+                    Text("● \(pendingIncomingCount) PENDING_REQUEST\(pendingIncomingCount == 1 ? "" : "S")")
+                        .font(.deejMono(9, weight: .bold))
+                        .foregroundStyle(.deejLEDAmber)
+                        .deejTracking(1.5)
+                        .padding(.top, 4)
+                } else if services.acceptedFriendships.isEmpty {
+                    Text("tap to find people to log nights with")
+                        .font(.deejMono(9))
+                        .foregroundStyle(.deejEngraving)
+                        .padding(.top, 4)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
+        .buttonStyle(.plain)
+    }
+
+    private var pendingIncomingCount: Int {
+        services.pendingIncomingFriendships.count
+    }
+
+    private var viewAllLabel: String {
+        let count = services.acceptedFriendships.count
+        return "VIEW_ALL · \(count) ▸"
+    }
+
+    private var friendAvatarsRow: some View {
+        HStack(spacing: 12) {
+            let accepted = services.acceptedFriendships
+            let me = services.userId
+            ForEach(Array(accepted.prefix(5).enumerated()), id: \.offset) { idx, friendship in
+                let user = services.friendUsers[friendship.otherUserId(notMe: me)]
+                let initials = String((user?.username ?? "??").prefix(2).uppercased())
+                ZStack {
+                    Circle().fill(Color.deejButtonDark)
+                        .overlay {
+                            Circle().strokeBorder(idx == 0 ? Color.deejOrangePrimary : Color.deejOrangeLow,
+                                                  lineWidth: idx == 0 ? 1.5 : 1)
+                        }
+                    Text(initials)
+                        .font(.deejMono(11, weight: .bold))
+                        .foregroundStyle(idx == 0 ? Color.deejOrangeHigh : Color.deejOrangeMid)
+                }
+                .frame(width: 44, height: 44)
+            }
+            // pad with empty slots to keep visual rhythm
+            ForEach(accepted.count..<5, id: \.self) { _ in
+                Circle()
+                    .fill(Color.deejButtonDark.opacity(0.4))
+                    .frame(width: 44, height: 44)
+                    .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+            }
+            Spacer()
+        }
     }
 }
 
