@@ -72,6 +72,70 @@ final class AppServices {
         currentUser?.id ?? UUID()
     }
 
+    // MARK: recommendation algorithm (Phase 7)
+    /// User's live taste vector computed from their logged events.
+    var tasteVector: TasteVector {
+        logs.reduce(TasteVector.empty) { $0.adding($1) }
+    }
+
+    /// Average rating profile for an event across all logs visible to the user.
+    /// v0: only this user's logs are visible (single-user). v0.1: friend logs
+    /// become visible via RLS once friendships exist; we just include those
+    /// here too. Production would back this with a `event_rating_profiles`
+    /// materialized view on Postgres.
+    func eventTasteProfile(_ eventId: UUID) -> TasteVector? {
+        let relevant = logs.filter { $0.eventId == eventId }
+        guard !relevant.isEmpty else { return nil }
+        return relevant.reduce(TasteVector.empty) { $0.adding($1) }
+    }
+
+    /// Hybrid recommendation score in [0, 1].
+    /// score = α·tasteMatch + β·friendSignal + γ·collabSignal
+    /// Phase 7 implements taste match; friend + collab roll in over time.
+    func recommendationScore(for event: Event) -> Double {
+        let alpha = 0.5, beta = 0.3, gamma = 0.2
+        return alpha * tasteMatch(for: event)
+             + beta  * friendSignal(for: event)
+             + gamma * collabSignal(for: event)
+    }
+
+    /// 0...1, falls back to 0 when the user has no logs to build a taste vector.
+    private func tasteMatch(for event: Event) -> Double {
+        let user = tasteVector
+        guard user.sampleSize >= 1 else { return 0 }
+        guard let eventVec = eventTasteProfile(event.id) else {
+            // Unknown event → neutral 5/10 baseline, dampened.
+            var seed: [Dimension: Double] = [:]
+            for d in Dimension.allCases { seed[d] = 5.0 }
+            let neutral = TasteVector(averages: seed, sampleSize: 1, computedAt: .now)
+            return user.cosineSimilarity(to: neutral) * 0.4
+        }
+        return user.cosineSimilarity(to: eventVec)
+    }
+
+    private func friendSignal(for event: Event) -> Double {
+        // Friend ratings live in `logs` too once friendships are accepted (RLS
+        // surfaces them). For the v0 single-user case this is just 0.
+        // Production: weight by recency, mean across friend ratings 1..10
+        // normalized to 0..1.
+        return 0
+    }
+
+    private func collabSignal(for event: Event) -> Double {
+        // Item-item collaborative filtering requires a corpus-wide query. v0
+        // returns 0; v0.1 wires this in once the dataset is non-trivial.
+        return 0
+    }
+
+    /// Events sorted by recommendation score (highest first). Events with
+    /// score == 0 are still included at the bottom.
+    var recommendedEvents: [Event] {
+        events
+            .map { ($0, recommendationScore(for: $0)) }
+            .sorted { $0.1 > $1.1 }
+            .map(\.0)
+    }
+
     // MARK: bootstrap
     /// Idempotent: safe to call multiple times.
     func bootstrap() async {

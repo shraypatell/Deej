@@ -16,18 +16,26 @@ struct DiscoverView: View {
         center: VenueCoordinates.defaultCenter,
         span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)))
     @State private var selectedEvent: Event?
+    @State private var sortMode: SortMode = .nearest
+
+    enum SortMode: Hashable { case nearest, recommended }
 
     private var userCenter: CLLocationCoordinate2D { VenueCoordinates.defaultCenter }
 
     private var rankedEvents: [Event] {
-        services.events
-            .map { event -> (event: Event, miles: Double) in
-                (event, VenueCoordinates.miles(from: userCenter,
-                                               to: VenueCoordinates.coordinate(for: event)))
-            }
-            .sorted { $0.miles < $1.miles }
-            .map(\.event)
+        switch sortMode {
+        case .nearest:
+            return services.events
+                .map { ($0, VenueCoordinates.miles(from: userCenter,
+                                                  to: VenueCoordinates.coordinate(for: $0))) }
+                .sorted { $0.1 < $1.1 }
+                .map(\.0)
+        case .recommended:
+            return services.recommendedEvents
+        }
     }
+
+    private var hasTasteData: Bool { !services.logs.isEmpty }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -170,48 +178,102 @@ struct DiscoverView: View {
     // MARK: list
     private var listBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
+            sortChips
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+
             HStack {
-                Text("NEAREST_EVENTS")
+                Text(sortMode == .nearest ? "NEAREST_EVENTS" : "BEST_MATCH_EVENTS")
                     .font(.deejMono(10, weight: .semibold))
                     .foregroundStyle(.deejCreamDim)
                     .deejTracking(1.5)
                 Spacer()
-                Text("↓ BY_DISTANCE")
+                Text(sortMode == .nearest ? "↓ BY_DISTANCE" : "↓ BY_MATCH")
                     .font(.deejMono(9, weight: .semibold))
                     .foregroundStyle(.deejOrangeLow)
                     .deejTracking(1.2)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 14)
 
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(rankedEvents.prefix(8).enumerated()), id: \.element.id) { idx, event in
-                        Button { selectedEvent = event } label: {
-                            row(event: event, isClosest: idx == 0)
+            if sortMode == .recommended && !hasTasteData {
+                tasteHint
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(rankedEvents.prefix(8).enumerated()), id: \.element.id) { idx, event in
+                            Button { selectedEvent = event } label: {
+                                row(event: event, isTop: idx == 0)
+                            }
+                            .buttonStyle(.plain)
+                            Rectangle().fill(Color.deejBgPanelEdge).frame(height: 1)
                         }
-                        .buttonStyle(.plain)
-                        Rectangle().fill(Color.deejBgPanelEdge).frame(height: 1)
+                        Spacer(minLength: 130)
                     }
-                    Spacer(minLength: 130)
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
         }
     }
 
-    private func row(event: Event, isClosest: Bool) -> some View {
+    private var sortChips: some View {
+        HStack(spacing: 8) {
+            chip(text: "NEAREST",     active: sortMode == .nearest)     { sortMode = .nearest }
+            chip(text: "BEST_MATCH",  active: sortMode == .recommended) { sortMode = .recommended }
+            Spacer()
+        }
+    }
+
+    private func chip(text: String, active: Bool, onTap: @escaping () -> Void) -> some View {
+        Button(action: onTap) {
+            Text(text)
+                .font(.deejMono(10, weight: active ? .bold : .semibold))
+                .foregroundStyle(active ? Color.deejBgScreen : Color.deejCreamDim)
+                .deejTracking(1.5)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background {
+                    Capsule()
+                        .fill(active ? Color.deejOrangePrimary : Color.deejButtonDark)
+                        .overlay {
+                            Capsule().strokeBorder(active ? Color.deejOrangeBright : Color.deejBgPanelEdge,
+                                                   lineWidth: 1)
+                        }
+                }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var tasteHint: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "dial.high")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.deejOrangeLow)
+            Text("RATE_AT_LEAST_ONE_EVENT")
+                .font(.deejMono(11, weight: .bold))
+                .foregroundStyle(.deejCream)
+                .deejTracking(2)
+            Text("recommendations build from your taste vector")
+                .font(.deejMono(9))
+                .foregroundStyle(.deejOrangeLow)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 30)
+        .padding(.bottom, 60)
+    }
+
+    private func row(event: Event, isTop: Bool) -> some View {
         HStack(spacing: 0) {
             Rectangle()
-                .fill(isClosest ? Color.deejOrangeBright : .clear)
+                .fill(isTop ? Color.deejOrangeBright : .clear)
                 .frame(width: 3, height: 38)
-                .shadow(color: isClosest ? Color.deejOrangePrimary : .clear, radius: 6)
+                .shadow(color: isTop ? Color.deejOrangePrimary : .clear, radius: 6)
                 .padding(.trailing, 12)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.artistName)
-                    .font(.deejMono(13, weight: isClosest ? .bold : .semibold))
-                    .foregroundStyle(isClosest ? Color.deejCream : Color.deejOrangeMid)
+                    .font(.deejMono(13, weight: isTop ? .bold : .semibold))
+                    .foregroundStyle(isTop ? Color.deejCream : Color.deejOrangeMid)
                     .deejTracking(0.5)
                 Text("\(event.venueName) · \(shortDate(event.eventDate))")
                     .font(.deejMono(8))
@@ -219,19 +281,39 @@ struct DiscoverView: View {
                     .deejTracking(0.8)
             }
             Spacer()
+            metricColumn(event: event, isTop: isTop)
+        }
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private func metricColumn(event: Event, isTop: Bool) -> some View {
+        switch sortMode {
+        case .nearest:
             VStack(alignment: .trailing, spacing: 2) {
                 Text(distanceString(for: event))
                     .font(.deejMono(12, weight: .bold))
-                    .foregroundStyle(isClosest ? Color.deejOrangeHigh : Color.deejOrangeMid)
+                    .foregroundStyle(isTop ? Color.deejOrangeHigh : Color.deejOrangeMid)
                     .deejTracking(0.5)
                 Text("MI")
                     .font(.deejMono(7, weight: .semibold))
                     .foregroundStyle(.deejOrangeLow)
                     .deejTracking(1.5)
             }
+        case .recommended:
+            let pct = Int(services.recommendationScore(for: event) * 100)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(pct)%")
+                    .font(.deejMono(12, weight: .bold))
+                    .foregroundStyle(isTop ? Color.deejOrangeHigh : Color.deejOrangeMid)
+                    .deejTracking(0.5)
+                Text("MATCH")
+                    .font(.deejMono(7, weight: .semibold))
+                    .foregroundStyle(.deejOrangeLow)
+                    .deejTracking(1.5)
+            }
         }
-        .padding(.vertical, 12)
-        .contentShape(Rectangle())
     }
 
     private func distanceString(for event: Event) -> String {
