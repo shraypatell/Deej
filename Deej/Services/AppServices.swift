@@ -9,7 +9,10 @@
 //
 
 import Foundation
+import OSLog
 import Supabase
+
+private let log = Logger(subsystem: "com.shray.deej", category: "AppServices")
 
 @MainActor
 @Observable
@@ -105,24 +108,36 @@ final class AppServices {
             .single()
             .execute()
             .value as AppUser {
+            log.info(" ensureUserRow: existing user, onboarding=\(existing.onboardingCompleted)")
             currentUser = existing
             return
         }
 
-        // Otherwise insert one.
-        let fresh = AppUser(
-            id: id,
+        // Otherwise insert one. Use a column-explicit insert payload so we
+        // never accidentally send Bool encoded as anything other than `false`.
+        struct NewUserPayload: Encodable {
+            let id: String
+            let username: String
+            let onboarding_completed: Bool
+            let created_at: String
+        }
+        let payload = NewUserPayload(
+            id: id.uuidString,
             username: "user_\(id.uuidString.prefix(6).lowercased())",
-            displayName: nil,
-            bio: nil,
-            avatarURL: nil,
-            location: nil,
-            onboardingCompleted: false,
-            tasteVector: nil,
-            createdAt: .now
+            onboarding_completed: false,
+            created_at: ISO8601DateFormatter().string(from: .now)
         )
-        try await client.from("users").insert(fresh).execute()
-        currentUser = fresh
+        log.info(" ensureUserRow: inserting payload onboarding=\(payload.onboarding_completed)")
+        try await client.from("users").insert(payload).execute()
+        // Refetch to get the canonical row (with server defaults applied).
+        let inserted: AppUser = try await client.from("users")
+            .select()
+            .eq("id", value: id)
+            .single()
+            .execute()
+            .value
+        log.info(" ensureUserRow: after insert, onboarding=\(inserted.onboardingCompleted)")
+        currentUser = inserted
     }
 
     // MARK: private — events
@@ -131,6 +146,7 @@ final class AppServices {
             .select()
             .execute()
             .value
+        log.info("fetchEvents: count=\(result.count)")
         events = result
     }
 
@@ -171,13 +187,14 @@ final class AppServices {
             .eq("user_id", value: user.id)
             .execute()
             .value
+        log.info("fetchLogs: count=\(result.count)")
         logs = result
     }
 
     // MARK: errors
     private func recordError(_ error: Error, op: String) {
         let full = "\(error)"
-        print("[Deej] \(op) failed: \(full)")
+        log.info(" \(op) failed: \(full)")
         lastError = "\(op.uppercased()) · \(shortMessage(from: full))"
     }
 
