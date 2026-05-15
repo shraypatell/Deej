@@ -17,6 +17,7 @@ struct DiscoverView: View {
         span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)))
     @State private var selectedEvent: Event?
     @State private var sortMode: SortMode = .nearest
+    @State private var isPromoting: Bool = false
 
     enum SortMode: Hashable { case nearest, recommended }
 
@@ -49,6 +50,11 @@ struct DiscoverView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(Color.deejBgCanvas)
         }
+        .sheet(isPresented: $isPromoting) {
+            PromoteEventView()
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color.deejBgCanvas)
+        }
     }
 
     // MARK: nav
@@ -73,18 +79,34 @@ struct DiscoverView: View {
     }
 
     private var scanningPill: some View {
-        HStack(spacing: 6) {
-            Circle().fill(.deejStatusGreen).frame(width: 5, height: 5)
-            Text("SCANNING")
-                .font(.deejMono(8, weight: .bold))
-                .foregroundStyle(.deejStatusGreen)
-                .deejTracking(1.5)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background {
-            Capsule().fill(Color.deejButtonDark)
-                .overlay { Capsule().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+        HStack(spacing: 8) {
+            HStack(spacing: 6) {
+                Circle().fill(.deejStatusGreen).frame(width: 5, height: 5)
+                Text("SCANNING")
+                    .font(.deejMono(8, weight: .bold))
+                    .foregroundStyle(.deejStatusGreen)
+                    .deejTracking(1.5)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background {
+                Capsule().fill(Color.deejButtonDark)
+                    .overlay { Capsule().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+            }
+
+            Button { isPromoting = true } label: {
+                Image(systemName: "antenna.radiowaves.left.and.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.deejOrangeHigh)
+                    .frame(width: 32, height: 32)
+                    .background {
+                        Circle()
+                            .fill(Color.deejButtonDark)
+                            .overlay { Circle().strokeBorder(Color.deejOrangePrimary, lineWidth: 1) }
+                            .shadow(color: Color.deejOrangePrimary.opacity(0.35), radius: 6)
+                    }
+            }
+            .buttonStyle(.plain)
         }
     }
 

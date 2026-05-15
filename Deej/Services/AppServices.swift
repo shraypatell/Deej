@@ -312,6 +312,33 @@ final class AppServices {
         for u in users { friendUsers[u.id] = u }
     }
 
+    // MARK: event creation (promotion)
+    func createEvent(artistName: String,
+                     venueName: String,
+                     city: String?,
+                     eventDate: Date,
+                     startTime: Date?) async -> Event? {
+        guard let me = currentUser?.id else { return nil }
+        let payload = Event(
+            id: UUID(),
+            artistName: artistName,
+            venueName: venueName,
+            city: city?.isEmpty == true ? nil : city,
+            eventDate: eventDate,
+            startTime: startTime,
+            promotedByUserId: me,
+            createdAt: .now
+        )
+        do {
+            try await client.from("events").insert(payload).execute()
+            try await fetchEvents()
+            return payload
+        } catch {
+            recordError(error, op: "create_event")
+            return nil
+        }
+    }
+
     func markOnboardingComplete() async {
         guard var user = currentUser else { return }
         user.onboardingCompleted = true

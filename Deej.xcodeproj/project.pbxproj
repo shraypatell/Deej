@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		030AE5A3C0CDDD91CFF8A0A5 /* PromoteEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5A0695713A79A747AED592E /* PromoteEventView.swift */; };
 		030CD39FDD1485CD9075A444 /* Dimension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF25F3520D39858B60F6F664 /* Dimension.swift */; };
 		090428B619EE515C452A1071 /* HardwareTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */; };
 		0AA46BB083790B58D932D5A7 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C41CD0AB091B76C85DE388B /* EventDetailView.swift */; };
@@ -75,6 +76,7 @@
 		B3C274105B5A122F26D009EA /* HighlightStripeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightStripeCard.swift; sourceTree = "<group>"; };
 		B606968BD0514C4BC3EDBAB7 /* VenueCoordinates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VenueCoordinates.swift; sourceTree = "<group>"; };
 		C297B3DF3A2C4DF2F0920859 /* DeejApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeejApp.swift; sourceTree = "<group>"; };
+		C5A0695713A79A747AED592E /* PromoteEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromoteEventView.swift; sourceTree = "<group>"; };
 		D4B486327CD1AC981C4F716C /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareTabBar.swift; sourceTree = "<group>"; };
 		D83009098549153E32A74218 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
@@ -136,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				E17252FA2B05D85BD3AD72A2 /* DiscoverView.swift */,
+				C5A0695713A79A747AED592E /* PromoteEventView.swift */,
 				B606968BD0514C4BC3EDBAB7 /* VenueCoordinates.swift */,
 			);
 			path = Discover;
@@ -381,6 +384,7 @@
 				941C9FD3EB50FADDDF2065C2 /* OLEDDisplay.swift in Sources */,
 				993240AFC1BA7FAB19D9693C /* OnboardingView.swift in Sources */,
 				AA9964F6252D44E3591A7368 /* ProfileView.swift in Sources */,
+				030AE5A3C0CDDD91CFF8A0A5 /* PromoteEventView.swift in Sources */,
 				BFC8115682179B945BB42CA6 /* RankingDraft.swift in Sources */,
 				7ED06EB2C0F3CC577FD83616 /* RootView.swift in Sources */,
 				6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */,
