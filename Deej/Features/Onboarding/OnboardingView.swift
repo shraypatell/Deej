@@ -1,25 +1,16 @@
 //
 //  OnboardingView.swift
-//  First-run flow. Boot status header → suggested events list → "rate one to unlock".
-//  Phase 3: UI scaffold + tap-through that just flips `hasCompletedOnboarding`.
-//  Phase 4 wires this to the real EventRanking flow.
+//  First-run flow: boot status terminal → suggested events → tap to rate first.
 //
 
 import SwiftUI
 
 struct OnboardingView: View {
+    @Environment(LocalEventStore.self) private var store
+
     let onComplete: () -> Void
 
-    private let suggestions: [SuggestedEvent] = [
-        SuggestedEvent(artist: "@FLOATING_POINTS", venue: "BROOKLYN_STEEL",
-                       dateLine: "2024.11.15 · FRI 22:00", isBestMatch: true),
-        SuggestedEvent(artist: "@JON_HOPKINS",     venue: "THE_SULTAN_ROOM",
-                       dateLine: "2024.11.08 · FRI 23:30", isBestMatch: false),
-        SuggestedEvent(artist: "@PEGGY_GOU",       venue: "PUBLIC_RECORDS",
-                       dateLine: "2024.10.25 · FRI 22:00", isBestMatch: false),
-        SuggestedEvent(artist: "@FRED_AGAIN",      venue: "KNOCKDOWN_CENTER",
-                       dateLine: "2024.10.18 · FRI 22:00", isBestMatch: false),
-    ]
+    @State private var rankingEvent: Event?
 
     var body: some View {
         ScrollView {
@@ -38,6 +29,14 @@ struct OnboardingView: View {
             .padding(.bottom, 32)
         }
         .background(Color.deejBgCanvas.ignoresSafeArea())
+        .sheet(item: $rankingEvent) { event in
+            EventRankingView(event: event) { _ in
+                onComplete()
+            }
+            .presentationDragIndicator(.visible)
+            .presentationBackground(Color.deejBgCanvas)
+            .interactiveDismissDisabled(false)
+        }
     }
 
     // MARK: top engraving row
@@ -56,12 +55,12 @@ struct OnboardingView: View {
         .padding(.top, 4)
     }
 
-    // MARK: boot status lines
+    // MARK: boot status
     private var bootStatus: some View {
         VStack(alignment: .leading, spacing: 4) {
-            bootRow(state: .ok,       label: "AUDIO_ENGINE.READY", tail: "[OK]",        tailColor: .deejStatusGreen)
-            bootRow(state: .ok,       label: "LOCATION.PERMISSION", tail: "[OK]",       tailColor: .deejStatusGreen)
-            bootRow(state: .pending,  label: "USER_PROFILE",        tail: "[PENDING]",  tailColor: .deejLEDAmber)
+            bootRow(state: .ok,       label: "AUDIO_ENGINE.READY",  tail: "[OK]",        tailColor: .deejStatusGreen)
+            bootRow(state: .ok,       label: "LOCATION.PERMISSION", tail: "[OK]",        tailColor: .deejStatusGreen)
+            bootRow(state: .pending,  label: "USER_PROFILE",        tail: "[PENDING]",   tailColor: .deejLEDAmber)
             bootRow(state: .awaiting, label: "FIRST_RATING",        tail: "[AWAITING ▮]", tailColor: .deejStatusRed)
         }
         .padding(.top, 14)
@@ -113,13 +112,13 @@ struct OnboardingView: View {
             .padding(.top, 10)
     }
 
-    // MARK: suggestions header
+    // MARK: suggestions
     private var sectionHeader: some View {
         HStack {
             Text("SELECT_FROM_NEARBY_RECENT")
                 .deejTracking(1.5)
             Spacer()
-            Text("\(suggestions.count) SUGGESTIONS")
+            Text("\(store.suggestedEvents.count) SUGGESTIONS")
                 .deejTracking(1.2)
                 .foregroundStyle(Color.deejOrangeLow)
         }
@@ -129,12 +128,15 @@ struct OnboardingView: View {
         .padding(.bottom, 10)
     }
 
-    // MARK: list
     private var suggestionsList: some View {
         VStack(spacing: 0) {
-            ForEach(Array(suggestions.enumerated()), id: \.offset) { _, event in
-                Button { onComplete() } label: { row(for: event) }
-                    .buttonStyle(.plain)
+            ForEach(Array(store.suggestedEvents.prefix(4).enumerated()), id: \.element.id) { idx, event in
+                Button {
+                    rankingEvent = event
+                } label: {
+                    row(for: event, isBestMatch: idx == 0)
+                }
+                .buttonStyle(.plain)
                 Rectangle()
                     .fill(Color.deejOrangeTrack)
                     .frame(height: 1)
@@ -143,16 +145,15 @@ struct OnboardingView: View {
         }
     }
 
-    private func row(for event: SuggestedEvent) -> some View {
+    private func row(for event: Event, isBestMatch: Bool) -> some View {
         HStack(spacing: 0) {
-            // left stripe (only for best match)
             Rectangle()
-                .fill(event.isBestMatch ? Color.deejOrangeBright : .clear)
+                .fill(isBestMatch ? Color.deejOrangeBright : .clear)
                 .frame(width: 3)
-                .shadow(color: event.isBestMatch ? Color.deejOrangePrimary : .clear, radius: 6)
+                .shadow(color: isBestMatch ? Color.deejOrangePrimary : .clear, radius: 6)
 
             VStack(alignment: .leading, spacing: 4) {
-                if event.isBestMatch {
+                if isBestMatch {
                     HStack {
                         Spacer()
                         Text("● BEST_MATCH")
@@ -161,10 +162,10 @@ struct OnboardingView: View {
                             .deejTracking(1.2)
                     }
                 }
-                Text(event.artist)
-                    .font(.deejMono(14, weight: event.isBestMatch ? .bold : .semibold))
-                    .foregroundStyle(event.isBestMatch ? Color.deejCream : Color.deejOrangeMid)
-                Text("\(event.venue) · \(event.dateLine)")
+                Text(event.artistName)
+                    .font(.deejMono(14, weight: isBestMatch ? .bold : .semibold))
+                    .foregroundStyle(isBestMatch ? Color.deejCream : Color.deejOrangeMid)
+                Text("\(event.venueName) · \(eventDateString(event.eventDate))")
                     .font(.deejMono(8))
                     .foregroundStyle(Color.deejOrangeLow)
                     .deejTracking(0.8)
@@ -176,10 +177,16 @@ struct OnboardingView: View {
 
             Text("▸")
                 .font(.deejMono(16, weight: .bold))
-                .foregroundStyle(event.isBestMatch ? Color.deejStatusGreen : Color.deejOrangeLow)
+                .foregroundStyle(isBestMatch ? Color.deejStatusGreen : Color.deejOrangeLow)
                 .padding(.trailing, 12)
         }
         .contentShape(Rectangle())
+    }
+
+    private func eventDateString(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy.MM.dd · EEE HH:mm"
+        return f.string(from: date).uppercased()
     }
 
     // MARK: bottom CTAs
@@ -191,7 +198,9 @@ struct OnboardingView: View {
                 .padding(.top, 20)
 
             Button {
-                onComplete()
+                if let any = store.suggestedEvents.last {
+                    rankingEvent = any
+                }
             } label: {
                 HStack(spacing: 10) {
                     Image(systemName: "plus").font(.system(size: 14, weight: .bold))
@@ -237,15 +246,10 @@ struct OnboardingView: View {
     }
 }
 
-private struct SuggestedEvent: Identifiable, Hashable {
-    let id = UUID()
-    let artist: String
-    let venue: String
-    let dateLine: String
-    let isBestMatch: Bool
-}
+// Event already conforms to Identifiable, so .sheet(item:) works directly.
 
 #Preview {
     OnboardingView(onComplete: {})
+        .environment(LocalEventStore())
         .preferredColorScheme(.dark)
 }
