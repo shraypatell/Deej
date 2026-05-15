@@ -24,6 +24,10 @@ final class AppServices {
     private(set) var logs: [EventLog] = []
     private(set) var friendships: [Friendship] = []
     private(set) var friendUsers: [UUID: AppUser] = [:]   // friend id → profile
+    private(set) var feedActivities: [FeedActivity] = []
+    private(set) var activityActorUsers: [UUID: AppUser] = [:] // user_id → profile
+    private(set) var activityEvents: [UUID: Event] = [:]       // event_id → event
+    private(set) var activityLogs: [UUID: EventLog] = [:]      // (event_id, actor) → log
     private(set) var isBootstrapping: Bool = false
     private(set) var lastError: String?
 
@@ -82,9 +86,63 @@ final class AppServices {
             try await seedDemoEventsIfEmpty()
             try await fetchLogs()
             try await fetchFriendships()
+            try await fetchActivityFeed()
         } catch {
             recordError(error, op: "bootstrap")
         }
+    }
+
+    func refreshActivityFeed() async {
+        do { try await fetchActivityFeed() }
+        catch { recordError(error, op: "refresh_feed") }
+    }
+
+    private func fetchActivityFeed() async throws {
+        // RLS already filters to self + accepted friends, so a plain select works.
+        let activities: [FeedActivity] = try await client.from("activity_feed")
+            .select()
+            .order("created_at", ascending: false)
+            .limit(50)
+            .execute()
+            .value
+        log.info("fetchActivityFeed: count=\(activities.count)")
+        feedActivities = activities
+
+        // Hydrate referenced events + actors so the cards can render.
+        let eventIds = Set(activities.compactMap { $0.subjectEventId })
+            .subtracting(activityEvents.keys)
+        let actorIds = Set(activities.map { $0.userId })
+            .subtracting(activityActorUsers.keys)
+            .subtracting(currentUser.map { Set([$0.id]) } ?? [])
+
+        if !eventIds.isEmpty {
+            let fetched: [Event] = try await client.from("events")
+                .select()
+                .in("id", values: eventIds.map { $0.uuidString })
+                .execute()
+                .value
+            for e in fetched { activityEvents[e.id] = e }
+        }
+        if !actorIds.isEmpty {
+            let users: [AppUser] = try await client.from("users")
+                .select()
+                .in("id", values: actorIds.map { $0.uuidString })
+                .execute()
+                .value
+            for u in users { activityActorUsers[u.id] = u }
+        }
+    }
+
+    /// Look up the actor's profile, falling back to currentUser for the
+    /// "my own activity" case.
+    func actor(for activity: FeedActivity) -> AppUser? {
+        if activity.userId == currentUser?.id { return currentUser }
+        return activityActorUsers[activity.userId] ?? friendUsers[activity.userId]
+    }
+
+    func activityEvent(for activity: FeedActivity) -> Event? {
+        guard let eid = activity.subjectEventId else { return nil }
+        return activityEvents[eid] ?? event(byId: eid)
     }
 
     // MARK: writes

@@ -1,8 +1,8 @@
 //
 //  FeedView.swift
-//  Social activity stream. Phase 5.5 renders mocked friend activity using
-//  mini CassetteCard previews. Phase 5.6 swaps the mock data for a query
-//  on `activity_feed` joined with friends.
+//  Social activity stream. Reads `public.activity_feed` via AppServices —
+//  RLS scopes the rows to self + accepted friends. Falls back to a helpful
+//  empty state when the feed is empty.
 //
 
 import SwiftUI
@@ -14,15 +14,20 @@ struct FeedView: View {
         VStack(spacing: 0) {
             navHeader
             ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(mockFeedItems) { item in
-                        feedCard(for: item)
+                LazyVStack(spacing: 12) {
+                    if services.feedActivities.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(services.feedActivities) { activity in
+                            feedCard(for: activity)
+                        }
                     }
                     Spacer(minLength: 120)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
+            .refreshable { await services.refreshActivityFeed() }
         }
         .background(Color.deejBgCanvas.ignoresSafeArea())
     }
@@ -31,7 +36,7 @@ struct FeedView: View {
     private var navHeader: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("ACTIVITY · 0_FRIENDS")
+                Text("ACTIVITY · \(services.acceptedFriendships.count)_FRIENDS")
                     .font(.deejMono(8, weight: .semibold))
                     .foregroundStyle(.deejTextFaint)
                     .deejTracking(1.5)
@@ -51,9 +56,7 @@ struct FeedView: View {
 
     private var livePill: some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(.deejStatusGreen)
-                .frame(width: 5, height: 5)
+            Circle().fill(.deejStatusGreen).frame(width: 5, height: 5)
             Text("LIVE")
                 .font(.deejMono(8, weight: .bold))
                 .foregroundStyle(.deejStatusGreen)
@@ -62,8 +65,7 @@ struct FeedView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background {
-            Capsule()
-                .fill(Color.deejButtonDark)
+            Capsule().fill(Color.deejButtonDark)
                 .overlay { Capsule().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
         }
     }
@@ -74,92 +76,145 @@ struct FeedView: View {
             .foregroundStyle(.deejCreamDim)
             .frame(width: 36, height: 36)
             .background {
-                Circle()
-                    .fill(Color.deejButtonDark)
+                Circle().fill(Color.deejButtonDark)
                     .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
             }
     }
 
+    // MARK: empty state
+    private var emptyState: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "waveform.path.ecg")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(.deejOrangeLow)
+            Text("NO_ACTIVITY_YET")
+                .font(.deejMono(12, weight: .bold))
+                .foregroundStyle(.deejCream)
+                .deejTracking(2)
+            Text(services.acceptedFriendships.isEmpty
+                 ? "add friends to see what they're rating"
+                 : "your friends haven't logged anything yet")
+                .font(.deejMono(9))
+                .foregroundStyle(.deejOrangeLow)
+            Text("your own ratings will also show up here")
+                .font(.deejMono(8))
+                .foregroundStyle(.deejEngraving)
+                .deejTracking(1)
+                .padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 80)
+    }
+
     // MARK: card switcher
     @ViewBuilder
-    private func feedCard(for item: FeedItem) -> some View {
-        switch item.kind {
-        case .ratedEvent(let event, let log, let likes, let comments):
-            ratedCard(item: item, event: event, log: log, likes: likes, comments: comments)
-        case .milestone(let badge, let blurb):
-            milestoneCard(item: item, badge: badge, blurb: blurb)
+    private func feedCard(for activity: FeedActivity) -> some View {
+        switch activity.type {
+        case .ratedEvent:
+            if let event = services.activityEvent(for: activity) {
+                ratedCard(activity: activity, event: event)
+            } else {
+                missingEventRow(activity: activity)
+            }
+        case .milestone:
+            milestoneCard(activity: activity)
+        case .goingToEvent, .addedToWant, .friendJoined:
+            simpleRow(activity: activity)
         }
     }
 
-    // MARK: rated_event variant
-    private func ratedCard(item: FeedItem, event: Event, log: EventLog, likes: Int, comments: Int) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            header(item: item, verb: "rated", subject: event.artistName)
+    // MARK: rated_event
+    private func ratedCard(activity: FeedActivity, event: Event) -> some View {
+        // Build a synthetic EventLog from the metadata so CassetteCard.mini can render.
+        let log = EventLog(
+            id: activity.id,
+            userId: activity.userId,
+            eventId: event.id,
+            ratingArtistPerformance: 0, ratingCrowdEnergy: 0, ratingVenue: 0,
+            ratingLightingVisuals: 0, ratingMusicSelection: 0, ratingAtmosphereVibe: 0, ratingValue: 0,
+            aggregateScore: activity.metadata.score ?? 0,
+            notes: nil, photoURLs: [],
+            status: .active,
+            createdAt: activity.createdAt, updatedAt: activity.createdAt)
+
+        return VStack(alignment: .leading, spacing: 10) {
+            header(activity: activity, verb: "rated", subject: event.artistName)
             CassetteCard(event: event, log: log, style: .mini)
             HStack(spacing: 14) {
-                footerTag("♥ \(likes) FRIENDS",   tint: .deejCreamDim)
-                footerTag("▢ \(comments) COMMENTS", tint: .deejOrangeLow)
-                footerTag("↗ SHARE",                 tint: .deejOrangeLow)
+                footerTag("♥ —",       tint: .deejCreamDim)
+                footerTag("▢ COMMENT", tint: .deejOrangeLow)
+                footerTag("↗ SHARE",   tint: .deejOrangeLow)
                 Spacer()
             }
         }
         .padding(14)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.deejBgPanel)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.deejBgPanelEdge, lineWidth: 1)
-                }
-        }
+        .background(cardBackground)
     }
 
-    // MARK: milestone variant
-    private func milestoneCard(item: FeedItem, badge: String, blurb: String) -> some View {
+    private func milestoneCard(activity: FeedActivity) -> some View {
         HStack(spacing: 12) {
-            avatar(item: item)
+            avatar(for: activity)
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text("@\(item.actorHandle)")
+                    Text("@\(actorHandle(activity))")
                         .font(.deejMono(12, weight: .bold))
                         .foregroundStyle(.deejCream)
                     Text("unlocked")
                         .font(.deejMono(11, weight: .medium))
                         .foregroundStyle(.deejOrangeLow)
-                    Text(badge)
+                    Text(activity.metadata.badge ?? "BADGE")
                         .font(.deejMono(12, weight: .bold))
                         .foregroundStyle(.deejStatusGreen)
                         .deejTracking(0.5)
                 }
-                Text(blurb)
-                    .font(.deejMono(9, weight: .medium))
-                    .foregroundStyle(.deejOrangeLow)
-                    .deejTracking(0.5)
+                if let blurb = activity.metadata.blurb {
+                    Text(blurb)
+                        .font(.deejMono(9))
+                        .foregroundStyle(.deejOrangeLow)
+                }
             }
             Spacer()
-            Text(item.timeAgo)
-                .font(.deejMono(9, weight: .semibold))
-                .foregroundStyle(.deejTextFaint)
-                .deejTracking(1.2)
+            timestampText(activity)
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 14)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.deejBgPanel)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.deejBgPanelEdge, lineWidth: 1)
-                }
-        }
+        .background(cardBackground)
     }
 
-    // MARK: shared header
-    private func header(item: FeedItem, verb: String, subject: String) -> some View {
+    private func simpleRow(activity: FeedActivity) -> some View {
+        HStack(spacing: 12) {
+            avatar(for: activity)
+            Text("@\(actorHandle(activity)) · \(activity.type.rawValue)")
+                .font(.deejMono(11, weight: .semibold))
+                .foregroundStyle(.deejCream)
+            Spacer()
+            timestampText(activity)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .background(cardBackground)
+    }
+
+    private func missingEventRow(activity: FeedActivity) -> some View {
+        HStack(spacing: 12) {
+            avatar(for: activity)
+            Text("@\(actorHandle(activity)) rated · event unavailable")
+                .font(.deejMono(10))
+                .foregroundStyle(.deejOrangeLow)
+            Spacer()
+            timestampText(activity)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .background(cardBackground)
+    }
+
+    // MARK: header + avatar helpers
+    private func header(activity: FeedActivity, verb: String, subject: String) -> some View {
         HStack(spacing: 10) {
-            avatar(item: item)
+            avatar(for: activity)
             HStack(spacing: 8) {
-                Text("@\(item.actorHandle)")
+                Text("@\(actorHandle(activity))")
                     .font(.deejMono(13, weight: .bold))
                     .foregroundStyle(.deejCream)
                     .deejTracking(0.5)
@@ -172,26 +227,29 @@ struct FeedView: View {
                     .deejTracking(0.5)
             }
             Spacer(minLength: 4)
-            Text(item.timeAgo)
-                .font(.deejMono(9, weight: .semibold))
-                .foregroundStyle(.deejTextFaint)
-                .deejTracking(1.2)
+            timestampText(activity)
         }
     }
 
-    private func avatar(item: FeedItem) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color.deejButtonDark)
+    private func avatar(for activity: FeedActivity) -> some View {
+        let isSelf = activity.userId == services.userId
+        let handle = actorHandle(activity)
+        let initials = String(handle.prefix(2).uppercased())
+        return ZStack {
+            Circle().fill(Color.deejButtonDark)
                 .overlay {
-                    Circle().strokeBorder(item.isClose ? Color.deejOrangePrimary : Color.deejOrangeLow,
-                                          lineWidth: item.isClose ? 1.5 : 1)
+                    Circle().strokeBorder(isSelf ? Color.deejOrangePrimary : Color.deejOrangeLow,
+                                          lineWidth: isSelf ? 1.5 : 1)
                 }
-            Text(item.actorInitials)
+            Text(initials)
                 .font(.deejMono(11, weight: .bold))
-                .foregroundStyle(item.isClose ? Color.deejOrangeHigh : Color.deejOrangeMid)
+                .foregroundStyle(isSelf ? Color.deejOrangeHigh : Color.deejOrangeMid)
         }
         .frame(width: 36, height: 36)
+    }
+
+    private func actorHandle(_ activity: FeedActivity) -> String {
+        services.actor(for: activity)?.username ?? "unknown"
     }
 
     private func footerTag(_ text: String, tint: Color) -> some View {
@@ -201,64 +259,32 @@ struct FeedView: View {
             .deejTracking(1.2)
     }
 
-    // MARK: mock data
-    /// Three illustrative feed items hardcoded for Phase 5.5.
-    /// Replaced by a real query against `activity_feed` in Phase 5.6.
-    private var mockFeedItems: [FeedItem] {
-        let now = Date()
-        let cal = Calendar.current
-
-        let event1 = Event(
-            id: UUID(), artistName: "@FOUR_TET", venueName: "KNOCKDOWN_CENTER",
-            city: "BKLYN",
-            eventDate: cal.date(byAdding: .day, value: -3, to: now) ?? now,
-            startTime: nil, promotedByUserId: nil, createdAt: now)
-        let log1 = EventLog(
-            id: UUID(), userId: UUID(), eventId: event1.id,
-            ratingArtistPerformance: 9, ratingCrowdEnergy: 10, ratingVenue: 8,
-            ratingLightingVisuals: 9, ratingMusicSelection: 9, ratingAtmosphereVibe: 10, ratingValue: 9,
-            aggregateScore: 9.1, notes: nil, photoURLs: [],
-            status: .active, createdAt: now, updatedAt: now)
-
-        let event2 = Event(
-            id: UUID(), artistName: "@CARIBOU", venueName: "ELSEWHERE",
-            city: "BSHWK",
-            eventDate: cal.date(byAdding: .day, value: -5, to: now) ?? now,
-            startTime: nil, promotedByUserId: nil, createdAt: now)
-        let log2 = EventLog(
-            id: UUID(), userId: UUID(), eventId: event2.id,
-            ratingArtistPerformance: 7, ratingCrowdEnergy: 8, ratingVenue: 7,
-            ratingLightingVisuals: 7, ratingMusicSelection: 8, ratingAtmosphereVibe: 7, ratingValue: 8,
-            aggregateScore: 7.5, notes: nil, photoURLs: [],
-            status: .active, createdAt: now, updatedAt: now)
-
-        return [
-            FeedItem(actorHandle: "JM_BKLYN", actorInitials: "JM", timeAgo: "2H",
-                     isClose: true,
-                     kind: .ratedEvent(event: event1, log: log1, likes: 4, comments: 2)),
-            FeedItem(actorHandle: "ava.eth", actorInitials: "AV", timeAgo: "5H",
-                     isClose: false,
-                     kind: .ratedEvent(event: event2, log: log2, likes: 2, comments: 1)),
-            FeedItem(actorHandle: "SK_NYC", actorInitials: "SK", timeAgo: "8H",
-                     isClose: false,
-                     kind: .milestone(badge: "50_LOGS_BADGE",
-                                       blurb: "milestone reached · 50 events archived"))
-        ]
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(Color.deejBgPanel)
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.deejBgPanelEdge, lineWidth: 1)
+            }
     }
-}
 
-// MARK: model
-private struct FeedItem: Identifiable {
-    enum Kind {
-        case ratedEvent(event: Event, log: EventLog, likes: Int, comments: Int)
-        case milestone(badge: String, blurb: String)
+    private func timestampText(_ activity: FeedActivity) -> some View {
+        Text(relativeTime(from: activity.createdAt))
+            .font(.deejMono(9, weight: .semibold))
+            .foregroundStyle(.deejTextFaint)
+            .deejTracking(1.2)
     }
-    let id = UUID()
-    let actorHandle: String
-    let actorInitials: String
-    let timeAgo: String
-    let isClose: Bool
-    let kind: Kind
+
+    private func relativeTime(from date: Date) -> String {
+        let interval = Date.now.timeIntervalSince(date)
+        switch interval {
+        case ..<60:      return "NOW"
+        case ..<3600:    return "\(Int(interval / 60))M"
+        case ..<86_400:  return "\(Int(interval / 3600))H"
+        case ..<604_800: return "\(Int(interval / 86_400))D"
+        default:         return "\(Int(interval / 604_800))W"
+        }
+    }
 }
 
 #Preview {
