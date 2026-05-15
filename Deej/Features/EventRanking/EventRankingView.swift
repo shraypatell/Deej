@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct EventRankingView: View {
-    @Environment(LocalEventStore.self) private var store
+    @Environment(AppServices.self) private var services
     @Environment(\.dismiss) private var dismiss
 
     @State private var draft: RankingDraft
@@ -202,10 +202,12 @@ struct EventRankingView: View {
 
     // MARK: actions
     private func handleLog() {
-        let log = draft.toEventLog(userId: store.mockUserId)
-        store.save(log)
-        onLog?(log)
-        dismiss()
+        let log = draft.toEventLog(userId: services.userId)
+        Task {
+            await services.save(log)
+            onLog?(log)
+            dismiss()
+        }
     }
 
     private func resetCurrent() {
@@ -234,9 +236,12 @@ struct EventRankingView: View {
 }
 
 #Preview {
-    let store = LocalEventStore()
-    let event = store.suggestedEvents.first!
+    let services = AppServices()
+    let event = Event(
+        id: UUID(), artistName: "@FOUR_TET", venueName: "KNOCKDOWN_CENTER",
+        city: "BKLYN", eventDate: .now, startTime: nil, promotedByUserId: nil,
+        createdAt: .now)
     return EventRankingView(event: event)
-        .environment(store)
+        .environment(services)
         .preferredColorScheme(.dark)
 }

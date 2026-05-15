@@ -7,14 +7,15 @@ import SwiftUI
 
 @main
 struct DeejApp: App {
-    @State private var store = LocalEventStore()
+    @State private var services = AppServices()
 
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environment(store)
+                .environment(services)
                 .preferredColorScheme(.dark)
                 .tint(.deejOrangePrimary)
+                .task { await services.bootstrap() }
         }
     }
 }

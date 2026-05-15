@@ -231,8 +231,10 @@ struct CassetteCard: View {
 }
 
 #Preview {
-    let store = LocalEventStore()
-    let event = store.suggestedEvents.first!
+    let event = Event(
+        id: UUID(), artistName: "@FOUR_TET", venueName: "KNOCKDOWN_CENTER",
+        city: "BKLYN", eventDate: .now, startTime: nil, promotedByUserId: nil,
+        createdAt: .now)
     let log = EventLog(
         id: UUID(), userId: UUID(), eventId: event.id,
         ratingArtistPerformance: 9, ratingCrowdEnergy: 8, ratingVenue: 7,

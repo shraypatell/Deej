@@ -7,12 +7,12 @@
 import SwiftUI
 
 struct EventDetailView: View {
-    @Environment(LocalEventStore.self) private var store
+    @Environment(AppServices.self) private var services
     @Environment(\.dismiss) private var dismiss
 
     let log: EventLog
 
-    private var event: Event? { store.event(byId: log.eventId) }
+    private var event: Event? { services.event(byId: log.eventId) }
 
     var body: some View {
         ScrollView {
@@ -175,15 +175,14 @@ struct EventDetailView: View {
 }
 
 #Preview {
-    let store = LocalEventStore()
-    let event = store.suggestedEvents.first!
+    let services = AppServices()
     let log = EventLog(
-        id: UUID(), userId: UUID(), eventId: event.id,
+        id: UUID(), userId: UUID(), eventId: UUID(),
         ratingArtistPerformance: 8, ratingCrowdEnergy: 9, ratingVenue: 7,
         ratingLightingVisuals: 9, ratingMusicSelection: 6, ratingAtmosphereVibe: 9, ratingValue: 7,
         aggregateScore: 7.86, notes: "biggest crowd at K_C", photoURLs: [],
         status: .active, createdAt: .now, updatedAt: .now)
     return EventDetailView(log: log)
-        .environment(store)
+        .environment(services)
         .preferredColorScheme(.dark)
 }

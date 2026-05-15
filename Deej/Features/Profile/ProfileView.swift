@@ -11,7 +11,7 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @Environment(LocalEventStore.self) private var store
+    @Environment(AppServices.self) private var services
 
     // Hard-coded user identity for v0; real Sign in with Apple lands in Phase 5.
     private let username  = "@you"
@@ -101,7 +101,7 @@ struct ProfileView: View {
         HStack(spacing: 8) {
             OLEDStatChip(label: "FRIENDS",   value: "0",
                          valueColor: .deejCream)
-            OLEDStatChip(label: "LOGGED",    value: "\(store.orderedLogs.count)",
+            OLEDStatChip(label: "LOGGED",    value: "\(services.orderedLogs.count)",
                          valueColor: .deejOrangeHigh)
             OLEDStatChip(label: "AVG_SCORE", value: avgScoreString,
                          valueColor: .deejOrangeBright)
@@ -111,9 +111,9 @@ struct ProfileView: View {
     }
 
     private var avgScoreString: String {
-        guard !store.orderedLogs.isEmpty else { return "—" }
-        let sum = store.orderedLogs.reduce(0) { $0 + $1.aggregateScore }
-        let avg = sum / Double(store.orderedLogs.count)
+        guard !services.orderedLogs.isEmpty else { return "—" }
+        let sum = services.orderedLogs.reduce(0) { $0 + $1.aggregateScore }
+        let avg = sum / Double(services.orderedLogs.count)
         return avg.formatted(.number.precision(.fractionLength(2)))
     }
 
@@ -125,7 +125,7 @@ struct ProfileView: View {
                 .foregroundStyle(.deejCreamDim)
                 .deejTracking(1.5)
             Spacer()
-            Text("FROM \(store.orderedLogs.count)_EVENTS")
+            Text("FROM \(services.orderedLogs.count)_EVENTS")
                 .font(.deejMono(9, weight: .semibold))
                 .foregroundStyle(.deejOrangeLow)
                 .deejTracking(1.2)
@@ -135,7 +135,7 @@ struct ProfileView: View {
     }
 
     private var tasteSubtitle: some View {
-        Text(store.orderedLogs.isEmpty
+        Text(services.orderedLogs.isEmpty
              ? "log events to build your taste profile"
              : "what you reward most across all logged events")
             .font(.deejMono(9, weight: .medium))
@@ -155,7 +155,7 @@ struct ProfileView: View {
     }
 
     private func tasteBarRow(dim: Dimension, score: Double) -> some View {
-        let isTopDim = dim == sortedDimensions.first?.0 && !store.orderedLogs.isEmpty
+        let isTopDim = dim == sortedDimensions.first?.0 && !services.orderedLogs.isEmpty
         return HStack(spacing: 12) {
             Text(dim.displayLabel)
                 .font(.deejMono(8, weight: isTopDim ? .bold : .medium))
@@ -196,7 +196,7 @@ struct ProfileView: View {
     }
 
     private var computedTasteVector: TasteVector {
-        store.orderedLogs.reduce(TasteVector.empty) { $0.adding($1) }
+        services.orderedLogs.reduce(TasteVector.empty) { $0.adding($1) }
     }
 
     private func barColor(score: Double) -> Color {
@@ -246,5 +246,5 @@ struct ProfileView: View {
 
 #Preview {
     ProfileView()
-        .environment(LocalEventStore())
+        .environment(AppServices())
 }

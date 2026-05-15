@@ -6,7 +6,7 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @Environment(LocalEventStore.self) private var store
+    @Environment(AppServices.self) private var services
 
     let onComplete: () -> Void
 
@@ -118,7 +118,7 @@ struct OnboardingView: View {
             Text("SELECT_FROM_NEARBY_RECENT")
                 .deejTracking(1.5)
             Spacer()
-            Text("\(store.suggestedEvents.count) SUGGESTIONS")
+            Text("\(services.suggestedEvents.count) SUGGESTIONS")
                 .deejTracking(1.2)
                 .foregroundStyle(Color.deejOrangeLow)
         }
@@ -130,7 +130,7 @@ struct OnboardingView: View {
 
     private var suggestionsList: some View {
         VStack(spacing: 0) {
-            ForEach(Array(store.suggestedEvents.prefix(4).enumerated()), id: \.element.id) { idx, event in
+            ForEach(Array(services.suggestedEvents.prefix(4).enumerated()), id: \.element.id) { idx, event in
                 Button {
                     rankingEvent = event
                 } label: {
@@ -198,7 +198,7 @@ struct OnboardingView: View {
                 .padding(.top, 20)
 
             Button {
-                if let any = store.suggestedEvents.last {
+                if let any = services.suggestedEvents.last {
                     rankingEvent = any
                 }
             } label: {
@@ -250,6 +250,6 @@ struct OnboardingView: View {
 
 #Preview {
     OnboardingView(onComplete: {})
-        .environment(LocalEventStore())
+        .environment(AppServices())
         .preferredColorScheme(.dark)
 }

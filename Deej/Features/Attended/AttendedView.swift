@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct AttendedView: View {
-    @Environment(LocalEventStore.self) private var store
+    @Environment(AppServices.self) private var services
 
     var body: some View {
         NavigationStack {
@@ -19,10 +19,10 @@ struct AttendedView: View {
                         chipsRow
                         bestCaptureCardIfAny
                         listHeader
-                        if store.orderedLogs.isEmpty {
+                        if services.orderedLogs.isEmpty {
                             emptyState
                         } else {
-                            ForEach(store.orderedLogs) { log in
+                            ForEach(services.orderedLogs) { log in
                                 NavigationLink(value: log) {
                                     row(for: log)
                                 }
@@ -83,7 +83,7 @@ struct AttendedView: View {
     // MARK: stats
     private var statsRow: some View {
         HStack(spacing: 8) {
-            OLEDStatChip(label: "LOGGED",    value: "\(store.orderedLogs.count)", valueColor: .deejCream)
+            OLEDStatChip(label: "LOGGED",    value: "\(services.orderedLogs.count)", valueColor: .deejCream)
             OLEDStatChip(label: "TOP_RATED", value: "\(topRatedCount)",            valueColor: .deejOrangeHigh)
             OLEDStatChip(label: "AVG_SCORE", value: avgScoreString,                valueColor: .deejOrangeBright)
         }
@@ -92,20 +92,20 @@ struct AttendedView: View {
     }
 
     private var topRatedCount: Int {
-        store.orderedLogs.filter { $0.aggregateScore >= 8.5 }.count
+        services.orderedLogs.filter { $0.aggregateScore >= 8.5 }.count
     }
 
     private var avgScoreString: String {
-        guard !store.orderedLogs.isEmpty else { return "—" }
-        let sum = store.orderedLogs.reduce(0.0) { $0 + $1.aggregateScore }
-        let avg = sum / Double(store.orderedLogs.count)
+        guard !services.orderedLogs.isEmpty else { return "—" }
+        let sum = services.orderedLogs.reduce(0.0) { $0 + $1.aggregateScore }
+        let avg = sum / Double(services.orderedLogs.count)
         return avg.formatted(.number.precision(.fractionLength(2)))
     }
 
     // MARK: chips
     private var chipsRow: some View {
         HStack(spacing: 8) {
-            chip("ALL · \(store.orderedLogs.count)", active: true)
+            chip("ALL · \(services.orderedLogs.count)", active: true)
             chip("TOP · \(topRatedCount)", active: false)
             chip("RECENT", active: false)
             chip("ARCHIVED", active: false)
@@ -135,7 +135,7 @@ struct AttendedView: View {
     // MARK: best capture
     @ViewBuilder
     private var bestCaptureCardIfAny: some View {
-        if let best = store.bestCapture, let event = store.event(byId: best.eventId) {
+        if let best = services.bestCapture, let event = services.event(byId: best.eventId) {
             HighlightStripeCard(tint: .deejStatusGreen) {
                 HStack(alignment: .center, spacing: 0) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -208,7 +208,7 @@ struct AttendedView: View {
     }
 
     private func row(for log: EventLog) -> some View {
-        let event = store.event(byId: log.eventId)
+        let event = services.event(byId: log.eventId)
         return HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(event?.artistName ?? "@UNKNOWN")
@@ -260,5 +260,5 @@ struct AttendedView: View {
 
 #Preview {
     AttendedView()
-        .environment(LocalEventStore())
+        .environment(AppServices())
 }
