@@ -202,19 +202,22 @@ struct AttendedView: View {
     }
 
     // Renders the user's logs as a vertical pile of cassette tapes —
-    // mini cassette per log, slight vertical overlap to suggest a stack.
+    // dark VHS-style body with a cream sticker label across the middle.
+    // 0 spacing so each cassette's dark bottom seam butts up against the
+    // next tape's top edge, visually reading as a stacked pile.
     private var cassetteStack: some View {
-        VStack(spacing: -4) {
-            ForEach(Array(services.orderedLogs.enumerated()), id: \.element.id) { idx, log in
+        VStack(spacing: 0) {
+            ForEach(services.orderedLogs) { log in
                 if let event = services.event(byId: log.eventId) {
                     NavigationLink(value: log) {
-                        StackedCassette(event: event, log: log, depth: idx)
+                        StackedCassette(event: event, log: log)
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
-        .padding(.top, 4)
+        .padding(.top, 8)
+        .padding(.horizontal, 4)
     }
 
     private var divider: some View {

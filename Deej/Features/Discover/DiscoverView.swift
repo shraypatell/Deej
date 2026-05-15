@@ -119,9 +119,16 @@ struct DiscoverView: View {
                 Annotation("", coordinate: userCenter) { youPin }
                     .annotationTitles(.hidden)
 
-                // Event pins with tap-to-preview behavior.
+                // Event pins with tap-to-preview behavior. The `.bottom`
+                // anchor keeps the pin itself pinned to the coordinate
+                // while the floating card grows upward when the pin is
+                // tapped (instead of pushing the pin off-target).
                 ForEach(rankedEvents) { event in
-                    Annotation("", coordinate: VenueCoordinates.coordinate(for: event)) {
+                    Annotation(
+                        "",
+                        coordinate: VenueCoordinates.coordinate(for: event),
+                        anchor: .bottom
+                    ) {
                         VStack(spacing: 6) {
                             if previewEvent?.id == event.id {
                                 previewCard(for: event)
