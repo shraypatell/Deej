@@ -14,8 +14,16 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     ENABLE_MODULE_VERIFIER: YES
 
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+
 targets:
   Deej:
+    dependencies:
+      - package: Supabase
+        product: Supabase
     type: application
     platform: iOS
     sources:

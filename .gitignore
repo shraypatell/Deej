@@ -30,6 +30,9 @@ fastlane/test_output
 # Generated files we want to keep regeneratable, not source-controlled
 # (project.yml IS source-controlled; Deej.xcodeproj is regenerated from it)
 
+# Secrets — local-only, never committed
+Deej/Resources/Secrets.swift
+
 # Misc
 *.log
 *.tmp

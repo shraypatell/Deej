@@ -10,15 +10,19 @@
 		030CD39FDD1485CD9075A444 /* Dimension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF25F3520D39858B60F6F664 /* Dimension.swift */; };
 		090428B619EE515C452A1071 /* HardwareTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */; };
 		0AA46BB083790B58D932D5A7 /* EventDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C41CD0AB091B76C85DE388B /* EventDetailView.swift */; };
+		14D4D3107E91260B1E1C5576 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FABE21F27712FCC6040780F5 /* Supabase */; };
 		1E5C845B5D403FB2D8AC4C55 /* AttendedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6D4F457653FDF0A211F4A0 /* AttendedView.swift */; };
 		224735E9D787C521DBF11B7C /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47BD4CA37A1E9C61CD48BDC /* EventLog.swift */; };
 		2B50000051BA4941E015538D /* HardwareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0FAA9F58DB6DA85C4F3FA2 /* HardwareButton.swift */; };
 		2C6FC5DC2CCA6DA1A79A4ED3 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = F614A490CDCD31C4714C5E6F /* Typography.swift */; };
+		2F06F183A790DB65E3B96E54 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83009098549153E32A74218 /* Secrets.swift */; };
+		40F4A1ADEDAFE0E151B4DC81 /* Secrets.swift.example in Resources */ = {isa = PBXBuildFile; fileRef = 0E9FF3F365209F8991CE7EA4 /* Secrets.swift.example */; };
 		5DF5AFBAC89661CCFB20C138 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 491BF8149C1D14D464A8A733 /* Colors.swift */; };
 		6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55DA2AC77B581279928C2DB /* RotaryKnob.swift */; };
 		7ED06EB2C0F3CC577FD83616 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB1274906AF1AF17924BAE2C /* RootView.swift */; };
 		7FB9E8D4054A9FBE003AA7C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1E17F19C9B6035EC929AC0EA /* Assets.xcassets */; };
 		804241631361F73D9F85A186 /* CRTScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8172E1AFEF25034D62EE477B /* CRTScreen.swift */; };
+		88BEE9D6863C29153DA3BA8B /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B486327CD1AC981C4F716C /* SupabaseClient.swift */; };
 		8B09350ECBB7E0BBA3825A58 /* HighlightStripeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C274105B5A122F26D009EA /* HighlightStripeCard.swift */; };
 		8C304BB8FA9B1D8EDA58FEAF /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0684D7ECFDA07B028A1808DB /* FeedView.swift */; };
 		941C9FD3EB50FADDDF2065C2 /* OLEDDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BD8D2FCC30846F81D7BC80 /* OLEDDisplay.swift */; };
@@ -41,6 +45,7 @@
 /* Begin PBXFileReference section */
 		05AB4F58851313A91E036623 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		0684D7ECFDA07B028A1808DB /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+		0E9FF3F365209F8991CE7EA4 /* Secrets.swift.example */ = {isa = PBXFileReference; path = Secrets.swift.example; sourceTree = "<group>"; };
 		10114584EF3B69A4BE60E0CF /* HardwarePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwarePanel.swift; sourceTree = "<group>"; };
 		1E17F19C9B6035EC929AC0EA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2390B433A290AAA3DB2964DF /* LocalEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalEventStore.swift; sourceTree = "<group>"; };
@@ -62,7 +67,9 @@
 		AA0FAA9F58DB6DA85C4F3FA2 /* HardwareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareButton.swift; sourceTree = "<group>"; };
 		B3C274105B5A122F26D009EA /* HighlightStripeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightStripeCard.swift; sourceTree = "<group>"; };
 		C297B3DF3A2C4DF2F0920859 /* DeejApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeejApp.swift; sourceTree = "<group>"; };
+		D4B486327CD1AC981C4F716C /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		D5A927BE9544C7E8702CC46E /* HardwareTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardwareTabBar.swift; sourceTree = "<group>"; };
+		D83009098549153E32A74218 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		DF25F3520D39858B60F6F664 /* Dimension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dimension.swift; sourceTree = "<group>"; };
 		E17252FA2B05D85BD3AD72A2 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
 		E47BD4CA37A1E9C61CD48BDC /* EventLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
@@ -71,6 +78,17 @@
 		F614A490CDCD31C4714C5E6F /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
 		FA6D4F457653FDF0A211F4A0 /* AttendedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2AC9BDA1A6247F95F40948D8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				14D4D3107E91260B1E1C5576 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0AA7CC671A1708F8D7B0B226 /* Products */ = {
@@ -177,6 +195,8 @@
 			isa = PBXGroup;
 			children = (
 				1E17F19C9B6035EC929AC0EA /* Assets.xcassets */,
+				D83009098549153E32A74218 /* Secrets.swift */,
+				0E9FF3F365209F8991CE7EA4 /* Secrets.swift.example */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -234,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				2390B433A290AAA3DB2964DF /* LocalEventStore.swift */,
+				D4B486327CD1AC981C4F716C /* SupabaseClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -247,6 +268,7 @@
 			buildPhases = (
 				79BE8616B9B13C572B674712 /* Sources */,
 				0CCEAE5251F29802E4A74EFE /* Resources */,
+				2AC9BDA1A6247F95F40948D8 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -254,6 +276,7 @@
 			);
 			name = Deej;
 			packageProductDependencies = (
+				FABE21F27712FCC6040780F5 /* Supabase */,
 			);
 			productName = Deej;
 			productReference = 98C7305D26FF0F5ACCBA74DC /* Deej.app */;
@@ -283,6 +306,9 @@
 			);
 			mainGroup = C4A81EBC85C02453EB505214;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CAD9AFFF9676B15D0623E8F6 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0AA7CC671A1708F8D7B0B226 /* Products */;
 			projectDirPath = "";
@@ -299,6 +325,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7FB9E8D4054A9FBE003AA7C5 /* Assets.xcassets in Resources */,
+				40F4A1ADEDAFE0E151B4DC81 /* Secrets.swift.example in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,7 +361,9 @@
 				BFC8115682179B945BB42CA6 /* RankingDraft.swift in Sources */,
 				7ED06EB2C0F3CC577FD83616 /* RootView.swift in Sources */,
 				6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */,
+				2F06F183A790DB65E3B96E54 /* Secrets.swift in Sources */,
 				C67224AA7A6F520DFC21F572 /* StatusLED.swift in Sources */,
+				88BEE9D6863C29153DA3BA8B /* SupabaseClient.swift in Sources */,
 				D7B04E7CEE63AB3145733C78 /* TasteVector.swift in Sources */,
 				2C6FC5DC2CCA6DA1A79A4ED3 /* Typography.swift in Sources */,
 			);
@@ -534,6 +563,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CAD9AFFF9676B15D0623E8F6 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FABE21F27712FCC6040780F5 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CAD9AFFF9676B15D0623E8F6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DDB89EA39FEFC1338E8A49E0 /* Project object */;
 }
