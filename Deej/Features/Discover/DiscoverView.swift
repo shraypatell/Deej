@@ -16,6 +16,7 @@ struct DiscoverView: View {
         center: VenueCoordinates.defaultCenter,
         span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)))
     @State private var selectedEvent: Event?
+    @State private var previewEvent: Event?
     @State private var sortMode: SortMode = .nearest
     @State private var isPromoting: Bool = false
 
@@ -118,12 +119,24 @@ struct DiscoverView: View {
                 Annotation("", coordinate: userCenter) { youPin }
                     .annotationTitles(.hidden)
 
-                // Event pins.
+                // Event pins with tap-to-preview behavior.
                 ForEach(rankedEvents) { event in
-                    Annotation(event.artistName,
-                               coordinate: VenueCoordinates.coordinate(for: event)) {
-                        eventPin(for: event)
-                            .onTapGesture { selectedEvent = event }
+                    Annotation("", coordinate: VenueCoordinates.coordinate(for: event)) {
+                        VStack(spacing: 6) {
+                            if previewEvent?.id == event.id {
+                                previewCard(for: event)
+                                    .transition(.asymmetric(
+                                        insertion: .scale(scale: 0.7, anchor: .bottom)
+                                            .combined(with: .opacity),
+                                        removal: .opacity))
+                            }
+                            eventPin(for: event)
+                                .onTapGesture {
+                                    withAnimation(.spring(duration: 0.28)) {
+                                        previewEvent = (previewEvent?.id == event.id) ? nil : event
+                                    }
+                                }
+                        }
                     }
                     .annotationTitles(.hidden)
                 }
@@ -185,16 +198,69 @@ struct DiscoverView: View {
     }
 
     private func eventPin(for event: Event) -> some View {
-        ZStack {
+        let isFocused = previewEvent?.id == event.id
+        return ZStack {
             Circle()
-                .fill(Color.deejOrangePrimary.opacity(0.25))
-                .frame(width: 22, height: 22)
+                .fill(Color.deejOrangePrimary.opacity(isFocused ? 0.4 : 0.25))
+                .frame(width: isFocused ? 28 : 22, height: isFocused ? 28 : 22)
             Circle()
                 .fill(.deejOrangeHigh)
-                .frame(width: 10, height: 10)
+                .frame(width: isFocused ? 14 : 10, height: isFocused ? 14 : 10)
                 .overlay { Circle().strokeBorder(Color.deejOrangePrimary, lineWidth: 1.5) }
-                .shadow(color: Color.deejOrangePrimary, radius: 8)
+                .shadow(color: Color.deejOrangePrimary, radius: isFocused ? 14 : 8)
         }
+        .animation(.spring(duration: 0.28), value: isFocused)
+    }
+
+    private func previewCard(for event: Event) -> some View {
+        VStack(spacing: 4) {
+            Text(event.artistName)
+                .font(.deejMono(12, weight: .bold))
+                .foregroundStyle(.deejCream)
+                .deejTracking(0.5)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text("\(event.venueName) · \(shortDate(event.eventDate))")
+                .font(.deejMono(8, weight: .semibold))
+                .foregroundStyle(.deejOrangeLow)
+                .deejTracking(0.5)
+                .lineLimit(1)
+
+            Button {
+                previewEvent = nil
+                selectedEvent = event
+            } label: {
+                HStack(spacing: 4) {
+                    Text("RATE")
+                        .font(.deejMono(8, weight: .bold))
+                        .deejTracking(1.5)
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 8, weight: .bold))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background {
+                    Capsule().fill(.deejOrangePrimary)
+                        .overlay { Capsule().strokeBorder(Color.deejOrangeBright, lineWidth: 1) }
+                }
+                .foregroundStyle(.deejBgScreen)
+                .shadow(color: Color.deejOrangePrimary.opacity(0.5), radius: 6)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.deejBgScreen)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.deejOrangePrimary, lineWidth: 1)
+                }
+        }
+        .shadow(color: Color.deejOrangePrimary.opacity(0.4), radius: 12)
+        .fixedSize()
     }
 
     // MARK: list

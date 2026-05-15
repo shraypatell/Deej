@@ -12,8 +12,12 @@ struct EventRankingView: View {
     @State private var draft: RankingDraft
     var onLog: ((EventLog) -> Void)?
 
-    init(event: Event, onLog: ((EventLog) -> Void)? = nil) {
-        _draft = State(initialValue: RankingDraft(event: event))
+    init(event: Event, existing: EventLog? = nil, onLog: ((EventLog) -> Void)? = nil) {
+        if let existing {
+            _draft = State(initialValue: RankingDraft(event: event, existing: existing))
+        } else {
+            _draft = State(initialValue: RankingDraft(event: event))
+        }
         self.onLog = onLog
     }
 

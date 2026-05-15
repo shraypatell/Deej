@@ -28,6 +28,7 @@ final class AppServices {
     private(set) var activityActorUsers: [UUID: AppUser] = [:] // user_id → profile
     private(set) var activityEvents: [UUID: Event] = [:]       // event_id → event
     private(set) var activityLogs: [UUID: EventLog] = [:]      // (event_id, actor) → log
+    private(set) var activityReactions: [UUID: [ActivityReaction]] = [:]   // activity_id → reactions
     private(set) var isBootstrapping: Bool = false
     private(set) var lastError: String?
 
@@ -195,6 +196,62 @@ final class AppServices {
                 .value
             for u in users { activityActorUsers[u.id] = u }
         }
+
+        try await fetchReactions(for: activities.map(\.id))
+    }
+
+    private func fetchReactions(for activityIds: [UUID]) async throws {
+        guard !activityIds.isEmpty else {
+            activityReactions = [:]
+            return
+        }
+        let result: [ActivityReaction] = try await client.from("activity_reactions")
+            .select()
+            .in("activity_id", values: activityIds.map { $0.uuidString })
+            .execute()
+            .value
+        var grouped: [UUID: [ActivityReaction]] = [:]
+        for r in result { grouped[r.activityId, default: []].append(r) }
+        activityReactions = grouped
+    }
+
+    func reactions(for activityId: UUID) -> [ActivityReaction] {
+        activityReactions[activityId] ?? []
+    }
+
+    func iHaveReacted(to activityId: UUID, emoji: String = "❤") -> Bool {
+        guard let me = currentUser?.id else { return false }
+        return reactions(for: activityId).contains { $0.userId == me && $0.emoji == emoji }
+    }
+
+    func toggleReaction(on activityId: UUID, emoji: String = "❤") async {
+        guard let me = currentUser?.id else { return }
+        let alreadyReacted = iHaveReacted(to: activityId, emoji: emoji)
+        do {
+            if alreadyReacted {
+                try await client.from("activity_reactions")
+                    .delete()
+                    .eq("activity_id", value: activityId)
+                    .eq("user_id", value: me)
+                    .eq("emoji", value: emoji)
+                    .execute()
+            } else {
+                struct ReactionPayload: Encodable {
+                    let activity_id: String
+                    let user_id: String
+                    let emoji: String
+                }
+                try await client.from("activity_reactions")
+                    .insert(ReactionPayload(
+                        activity_id: activityId.uuidString,
+                        user_id: me.uuidString,
+                        emoji: emoji))
+                    .execute()
+            }
+            try await fetchReactions(for: feedActivities.map(\.id))
+        } catch {
+            recordError(error, op: "toggle_reaction")
+        }
     }
 
     /// Look up the actor's profile, falling back to currentUser for the
@@ -336,6 +393,27 @@ final class AppServices {
         } catch {
             recordError(error, op: "create_event")
             return nil
+        }
+    }
+
+    // MARK: log archive / unarchive
+    func archiveLog(_ log: EventLog) async {
+        await setLogStatus(log, status: .archived, op: "archive_log")
+    }
+
+    func unarchiveLog(_ log: EventLog) async {
+        await setLogStatus(log, status: .active, op: "unarchive_log")
+    }
+
+    private func setLogStatus(_ log: EventLog, status: EventLog.ArchiveStatus, op: String) async {
+        do {
+            try await client.from("event_logs")
+                .update(["status": status.rawValue])
+                .eq("id", value: log.id)
+                .execute()
+            try await fetchLogs()
+        } catch {
+            recordError(error, op: op)
         }
     }
 

@@ -22,13 +22,7 @@ struct AttendedView: View {
                         if services.orderedLogs.isEmpty {
                             emptyState
                         } else {
-                            ForEach(services.orderedLogs) { log in
-                                NavigationLink(value: log) {
-                                    row(for: log)
-                                }
-                                .buttonStyle(.plain)
-                                divider
-                            }
+                            cassetteStack
                         }
                         Spacer(minLength: 100)
                     }
@@ -207,26 +201,20 @@ struct AttendedView: View {
         .padding(.vertical, 60)
     }
 
-    private func row(for log: EventLog) -> some View {
-        let event = services.event(byId: log.eventId)
-        return HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(event?.artistName ?? "@UNKNOWN")
-                    .font(.deejMono(15, weight: .bold))
-                    .foregroundStyle(.deejCream)
-                    .deejTracking(0.5)
-                Text("\(event?.venueName ?? "—") · \(event.map { dateString($0.eventDate) } ?? "")")
-                    .font(.deejMono(9))
-                    .foregroundStyle(.deejOrangeLow)
+    // Renders the user's logs as a vertical pile of cassette tapes —
+    // mini cassette per log, slight vertical overlap to suggest a stack.
+    private var cassetteStack: some View {
+        VStack(spacing: -4) {
+            ForEach(Array(services.orderedLogs.enumerated()), id: \.element.id) { idx, log in
+                if let event = services.event(byId: log.eventId) {
+                    NavigationLink(value: log) {
+                        StackedCassette(event: event, log: log, depth: idx)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            Spacer()
-            Text(log.aggregateScore.formatted(.number.precision(.fractionLength(1))))
-                .font(.deejMono(22, weight: .bold))
-                .foregroundStyle(scoreColor(log.aggregateScore))
-                .deejTracking(0.5)
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 4)
+        .padding(.top, 4)
     }
 
     private var divider: some View {

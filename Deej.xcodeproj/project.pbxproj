@@ -16,6 +16,7 @@
 		1E5C845B5D403FB2D8AC4C55 /* AttendedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6D4F457653FDF0A211F4A0 /* AttendedView.swift */; };
 		21E690E678F7DC8A4CC31431 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5D441D97DB2210C4A892EECA /* PrivacyInfo.xcprivacy */; };
 		224735E9D787C521DBF11B7C /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E47BD4CA37A1E9C61CD48BDC /* EventLog.swift */; };
+		270B57F8746C63026FACCEE0 /* ActivityReaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D3CB0D3855C58181116CD4 /* ActivityReaction.swift */; };
 		2B50000051BA4941E015538D /* HardwareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0FAA9F58DB6DA85C4F3FA2 /* HardwareButton.swift */; };
 		2C6FC5DC2CCA6DA1A79A4ED3 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = F614A490CDCD31C4714C5E6F /* Typography.swift */; };
 		2F06F183A790DB65E3B96E54 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83009098549153E32A74218 /* Secrets.swift */; };
@@ -35,6 +36,7 @@
 		993240AFC1BA7FAB19D9693C /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E6D940E95975B6D2B264D2 /* OnboardingView.swift */; };
 		9D89C5AB09568F6601483540 /* CassetteCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E1FCA6F2EC9887B64D5E8BC /* CassetteCard.swift */; };
 		A19116DA696DAFD69FADC1E6 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A881D7CFC4821FDCF558F48 /* AppServices.swift */; };
+		A55A1E00E37C07FC1FAFACC7 /* StackedCassette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C1880555E3A55C71B01092 /* StackedCassette.swift */; };
 		AA9964F6252D44E3591A7368 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87497B80F37C7821EB791F45 /* ProfileView.swift */; };
 		BFC8115682179B945BB42CA6 /* RankingDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55422BDF71A71055029EA7 /* RankingDraft.swift */; };
 		C04263BF9C1E8784A194B875 /* HardwarePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10114584EF3B69A4BE60E0CF /* HardwarePanel.swift */; };
@@ -61,9 +63,11 @@
 		375A4020482C5C8C7A749ACD /* DimensionSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DimensionSlider.swift; sourceTree = "<group>"; };
 		4179DC9E7B128578EE115AE2 /* TasteVector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasteVector.swift; sourceTree = "<group>"; };
 		491BF8149C1D14D464A8A733 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		51C1880555E3A55C71B01092 /* StackedCassette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackedCassette.swift; sourceTree = "<group>"; };
 		52701A152C8C3D4DEBF56B43 /* Friendship.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Friendship.swift; sourceTree = "<group>"; };
 		5D441D97DB2210C4A892EECA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5EDB660DE38994E96B32C3B3 /* StatusLED.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusLED.swift; sourceTree = "<group>"; };
+		66D3CB0D3855C58181116CD4 /* ActivityReaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityReaction.swift; sourceTree = "<group>"; };
 		6FCD0172F5EE8BA71CA3E0B5 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		70682E1E90405AB1921F2F6E /* AppUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUser.swift; sourceTree = "<group>"; };
 		72BD8D2FCC30846F81D7BC80 /* OLEDDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OLEDDisplay.swift; sourceTree = "<group>"; };
@@ -181,6 +185,7 @@
 		7C2220FFAAD383B7D5A0453D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				66D3CB0D3855C58181116CD4 /* ActivityReaction.swift */,
 				70682E1E90405AB1921F2F6E /* AppUser.swift */,
 				DF25F3520D39858B60F6F664 /* Dimension.swift */,
 				05AB4F58851313A91E036623 /* Event.swift */,
@@ -220,6 +225,7 @@
 				B3C274105B5A122F26D009EA /* HighlightStripeCard.swift */,
 				72BD8D2FCC30846F81D7BC80 /* OLEDDisplay.swift */,
 				E55DA2AC77B581279928C2DB /* RotaryKnob.swift */,
+				51C1880555E3A55C71B01092 /* StackedCassette.swift */,
 				5EDB660DE38994E96B32C3B3 /* StatusLED.swift */,
 			);
 			path = Components;
@@ -374,6 +380,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				270B57F8746C63026FACCEE0 /* ActivityReaction.swift in Sources */,
 				A19116DA696DAFD69FADC1E6 /* AppServices.swift in Sources */,
 				D3FA0E25536FB6662DD802E9 /* AppUser.swift in Sources */,
 				1E5C845B5D403FB2D8AC4C55 /* AttendedView.swift in Sources */,
@@ -405,6 +412,7 @@
 				6356209B1775FEE2FFAF2DEA /* RotaryKnob.swift in Sources */,
 				2F06F183A790DB65E3B96E54 /* Secrets.swift in Sources */,
 				76644520A147D78FB690B359 /* SettingsView.swift in Sources */,
+				A55A1E00E37C07FC1FAFACC7 /* StackedCassette.swift in Sources */,
 				C67224AA7A6F520DFC21F572 /* StatusLED.swift in Sources */,
 				88BEE9D6863C29153DA3BA8B /* SupabaseClient.swift in Sources */,
 				D7B04E7CEE63AB3145733C78 /* TasteVector.swift in Sources */,

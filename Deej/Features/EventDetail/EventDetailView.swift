@@ -12,6 +12,9 @@ struct EventDetailView: View {
 
     let log: EventLog
 
+    @State private var isEditing: Bool = false
+    @State private var showArchiveConfirm: Bool = false
+
     private var event: Event? { services.event(byId: log.eventId) }
 
     var body: some View {
@@ -32,6 +35,36 @@ struct EventDetailView: View {
             .padding(.bottom, 32)
         }
         .background(Color.deejBgPanel.ignoresSafeArea())
+        .sheet(isPresented: $isEditing) {
+            if let event {
+                EventRankingView(event: event, existing: log) { _ in
+                    dismiss()   // jump back to Attended after re-rating
+                }
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color.deejBgCanvas)
+            }
+        }
+        .confirmationDialog(
+            log.status == .archived ? "Unarchive this log?" : "Archive this log?",
+            isPresented: $showArchiveConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(log.status == .archived ? "Unarchive" : "Archive", role: .destructive) {
+                Task {
+                    if log.status == .archived {
+                        await services.unarchiveLog(log)
+                    } else {
+                        await services.archiveLog(log)
+                    }
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(log.status == .archived
+                 ? "It'll come back to your Attended list."
+                 : "It stays in the cloud but hides from your Attended list.")
+        }
     }
 
     private var topRow: some View {
@@ -134,7 +167,7 @@ struct EventDetailView: View {
 
     private var actionsRow: some View {
         HStack(spacing: 10) {
-            Button { } label: {
+            Button { isEditing = true } label: {
                 VStack(spacing: 1) {
                     Text("EDIT").font(.deejMono(13, weight: .bold)).deejTracking(2)
                     Text("RATING").font(.deejMono(7, weight: .semibold)).deejTracking(1.5).opacity(0.7)
@@ -143,7 +176,7 @@ struct EventDetailView: View {
             .buttonStyle(.hardware(.primary))
             .frame(height: 56)
 
-            Button { } label: {
+            ShareLink(item: shareSnippet, subject: Text("Deej · \(event?.artistName ?? "")")) {
                 VStack(spacing: 1) {
                     Text("SHARE").font(.deejMono(12, weight: .bold)).deejTracking(2)
                     Text("TO_FRIENDS").font(.deejMono(7, weight: .semibold)).deejTracking(1.5).opacity(0.7)
@@ -152,16 +185,26 @@ struct EventDetailView: View {
             .buttonStyle(.hardware(.secondary))
             .frame(height: 56)
 
-            Button { } label: {
+            Button { showArchiveConfirm = true } label: {
                 VStack(spacing: 1) {
-                    Text("ARCHIVE").font(.deejMono(11, weight: .bold)).deejTracking(2)
-                    Text("MOVE_OFF").font(.deejMono(7, weight: .semibold)).deejTracking(1.5).opacity(0.7)
+                    Text(log.status == .archived ? "RESTORE" : "ARCHIVE")
+                        .font(.deejMono(11, weight: .bold)).deejTracking(2)
+                    Text(log.status == .archived ? "BRING_BACK" : "MOVE_OFF")
+                        .font(.deejMono(7, weight: .semibold)).deejTracking(1.5).opacity(0.7)
                 }
             }
             .buttonStyle(.hardware(.ghost))
             .frame(height: 56)
         }
         .padding(.top, 28)
+    }
+
+    private var shareSnippet: String {
+        let artist = event?.artistName ?? "an event"
+        let venue  = event?.venueName ?? ""
+        let score  = log.aggregateScore.formatted(.number.precision(.fractionLength(1)))
+        let line   = venue.isEmpty ? "" : " at \(venue)"
+        return "Rated \(artist) \(score)/10 on Deej\(line)."
     }
 
     private var bottomEngraving: some View {

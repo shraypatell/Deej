@@ -77,26 +77,37 @@ struct ProfileView: View {
                 .foregroundStyle(.deejTextFaint)
                 .deejTracking(2)
             Spacer()
-            roundIcon("square.and.arrow.up") {}
+            ShareLink(item: shareText, subject: Text("My Deej profile")) {
+                roundIconLabel("square.and.arrow.up")
+            }
             roundIcon("gearshape") { showSettings = true }
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
     }
 
+    private var shareText: String {
+        let name = services.currentUser?.username ?? "me"
+        let logs = services.orderedLogs.count
+        let avg  = avgScoreString
+        return "@\(name) on Deej · \(logs) events logged · avg \(avg)/10"
+    }
+
     private func roundIcon(_ name: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: name)
-                .font(.system(size: 13))
-                .foregroundStyle(.deejCreamDim)
-                .frame(width: 36, height: 36)
-                .background {
-                    Circle()
-                        .fill(Color.deejButtonDark)
-                        .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
-                }
-        }
-        .buttonStyle(.plain)
+        Button(action: action) { roundIconLabel(name) }
+            .buttonStyle(.plain)
+    }
+
+    private func roundIconLabel(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 13))
+            .foregroundStyle(.deejCreamDim)
+            .frame(width: 36, height: 36)
+            .background {
+                Circle()
+                    .fill(Color.deejButtonDark)
+                    .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
+            }
     }
 
     // MARK: hero

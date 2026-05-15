@@ -9,16 +9,32 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(AppServices.self) private var services
+    @State private var filter: FeedFilter = .all
+
+    enum FeedFilter: String, CaseIterable, Identifiable {
+        case all          = "ALL"
+        case rated        = "RATED"
+        case milestone    = "MILESTONES"
+        var id: String { rawValue }
+    }
+
+    private var filteredActivities: [FeedActivity] {
+        switch filter {
+        case .all:       return services.feedActivities
+        case .rated:     return services.feedActivities.filter { $0.type == .ratedEvent }
+        case .milestone: return services.feedActivities.filter { $0.type == .milestone }
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             navHeader
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    if services.feedActivities.isEmpty {
+                    if filteredActivities.isEmpty {
                         emptyState
                     } else {
-                        ForEach(services.feedActivities) { activity in
+                        ForEach(filteredActivities) { activity in
                             feedCard(for: activity)
                         }
                     }
@@ -47,7 +63,7 @@ struct FeedView: View {
             }
             Spacer()
             livePill
-            roundIcon("line.3.horizontal.decrease")
+            filterMenu
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
@@ -79,6 +95,31 @@ struct FeedView: View {
                 Circle().fill(Color.deejButtonDark)
                     .overlay { Circle().strokeBorder(Color.deejBgPanelEdge, lineWidth: 1) }
             }
+    }
+
+    private var filterMenu: some View {
+        Menu {
+            ForEach(FeedFilter.allCases) { option in
+                Button {
+                    filter = option
+                } label: {
+                    Label(option.rawValue.capitalized,
+                          systemImage: filter == option ? "checkmark" : "")
+                }
+            }
+        } label: {
+            ZStack {
+                Circle().fill(Color.deejButtonDark)
+                    .overlay { Circle().strokeBorder(filter == .all
+                                                     ? Color.deejBgPanelEdge
+                                                     : Color.deejOrangePrimary,
+                                                     lineWidth: 1) }
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 13))
+                    .foregroundStyle(filter == .all ? .deejCreamDim : .deejOrangeHigh)
+            }
+            .frame(width: 36, height: 36)
+        }
     }
 
     // MARK: empty state
@@ -140,15 +181,33 @@ struct FeedView: View {
         return VStack(alignment: .leading, spacing: 10) {
             header(activity: activity, verb: "rated", subject: event.artistName)
             CassetteCard(event: event, log: log, style: .mini)
-            HStack(spacing: 14) {
-                footerTag("♥ —",       tint: .deejCreamDim)
-                footerTag("▢ COMMENT", tint: .deejOrangeLow)
-                footerTag("↗ SHARE",   tint: .deejOrangeLow)
-                Spacer()
-            }
+            footerActions(for: activity, event: event)
         }
         .padding(14)
         .background(cardBackground)
+    }
+
+    private func footerActions(for activity: FeedActivity, event: Event) -> some View {
+        let count = services.reactions(for: activity.id).count
+        let liked = services.iHaveReacted(to: activity.id)
+        return HStack(spacing: 14) {
+            Button {
+                Task { await services.toggleReaction(on: activity.id) }
+            } label: {
+                Text("\(liked ? "♥" : "♡") \(count > 0 ? "\(count) " : "")\(liked ? "LIKED" : "LIKE")")
+                    .font(.deejMono(9, weight: liked ? .bold : .semibold))
+                    .foregroundStyle(liked ? Color.deejStatusRed : Color.deejCreamDim)
+                    .deejTracking(1.2)
+            }
+            .buttonStyle(.plain)
+            ShareLink(item: "\(event.artistName) · \(event.venueName) · on Deej") {
+                Text("↗ SHARE")
+                    .font(.deejMono(9, weight: .semibold))
+                    .foregroundStyle(.deejOrangeLow)
+                    .deejTracking(1.2)
+            }
+            Spacer()
+        }
     }
 
     private func milestoneCard(activity: FeedActivity) -> some View {

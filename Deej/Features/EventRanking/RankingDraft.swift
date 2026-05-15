@@ -15,11 +15,22 @@ final class RankingDraft {
     var focusedDimension: Dimension = .artistPerformance
     var notes: String = ""
 
+    /// Existing log id, set when editing instead of creating a new rating.
+    private(set) var editingLogId: UUID?
+
     init(event: Event, defaultRating: Int = 5) {
         self.event = event
         var seed: [Dimension: Int] = [:]
         for d in Dimension.allCases { seed[d] = defaultRating }
         self.ratings = seed
+    }
+
+    /// Construct in edit mode from an existing log.
+    init(event: Event, existing: EventLog) {
+        self.event = event
+        self.ratings = existing.dimensionRatings
+        self.notes = existing.notes ?? ""
+        self.editingLogId = existing.id
     }
 
     func value(for dim: Dimension) -> Int {
@@ -50,9 +61,11 @@ final class RankingDraft {
     }
 
     /// Snapshot the draft into a persistable EventLog for the given user.
+    /// If we're editing an existing log, the same `id` and `createdAt` are
+    /// preserved so `.upsert` updates the row instead of creating a new one.
     func toEventLog(userId: UUID) -> EventLog {
         EventLog(
-            id: UUID(),
+            id: editingLogId ?? UUID(),
             userId: userId,
             eventId: event.id,
             ratingArtistPerformance: value(for: .artistPerformance),
